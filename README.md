@@ -76,5 +76,5 @@ Scripts úteis:
 
 ## Status
 
-🚧 **Fase 0 — Fundações.** Scaffolding do monorepo concluído. Próximo: pipeline de
-importação de cartas (Fase 1).
+🚧 **Fase 1 concluída — Pipeline de cartas.** Monorepo + base BT01 real (115 cartas)
+importada e validada. Próximo: core do engine de regras (Fase 2).

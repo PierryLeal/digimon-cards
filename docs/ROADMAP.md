@@ -7,10 +7,11 @@ Monorepo (pnpm + Turborepo), tsconfig/lint/prettier, Vitest, Docker Compose (Pos
 Redis), CI, scaffolding de todos os pacotes/apps e docs.
 **Entregável:** `pnpm install && pnpm dev` sobe server (ws + /health) e web (status online).
 
-## ⬜ Fase 1 — Pipeline de cartas
-`tools/card-importer` baixa BT01 da digimoncard.io, normaliza para o schema e grava
-`packages/cards/data/bt01.json` (validado por Zod).
-**Entregável:** base BT01 tipada e validada, carregável pelo `CardDatabase`.
+## ✅ Fase 1 — Pipeline de cartas
+`tools/card-importer` baixa BT01 da digimoncard.io (match por prefixo `BT1-`), deduplica
+artes alternativas, normaliza para o schema e grava `packages/cards/data/bt01.json`
+(validado por Zod). 115 cartas: 8 Digi-Eggs, 78 Digimon, 5 Tamers, 24 Options.
+**Entregável:** base BT01 tipada e validada, carregável pelo `CardDatabase` (com testes).
 
 ## ⬜ Fase 2 — Core do engine (sem efeitos)
 Estado, zonas, setup + mulligan, fases (Unsuspend→Draw→Breeding→Main→End), memória,

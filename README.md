@@ -76,6 +76,6 @@ Scripts úteis:
 
 ## Status
 
-🚧 **Fase 2 concluída — Core do engine.** Reducer puro e determinístico com setup,
-mulligan, fases, memória, evolução, batalha e security (14 testes). Base BT01 real (115
-cartas). Próximo: engine de efeitos das cartas (Fase 3).
+🚧 **Fase 3a em andamento — Engine de efeitos.** Infraestrutura de efeitos (registry,
+hooks, modificadores de DP, escolhas/reações) + 7 cartas-piloto reais do BT01 (24 testes
+no engine). Próximo: implementar o restante dos efeitos do BT01 (Fase 3b).

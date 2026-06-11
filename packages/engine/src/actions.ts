@@ -6,7 +6,8 @@ import type { CardColor, CardInstanceId, GameEvent } from "@digimon/shared";
 import type { EngineContext } from "./context.js";
 import type { CardStack, GameState } from "./state.js";
 import { RuleError } from "./errors.js";
-import { checkAutoEndTurn, draw, findStack, makeStack, setMemory } from "./flow.js";
+import { draw, findStack, makeStack, setMemory } from "./flow.js";
+import { triggerCard } from "./effects/triggers.js";
 
 function takeFromHand(state: GameState, player: 0 | 1, cardId: CardInstanceId) {
   const p = state.players[player];
@@ -36,7 +37,7 @@ export function playCard(
   p.hand = p.hand.filter((c) => c.id !== cardId);
 
   if (def.kind === "option") {
-    // Sem motor de efeitos (Fase 3): a Option resolve "nada" e vai para o lixo.
+    // Option: o efeito [Main] roda via onPlay; vanilla resolve "nada". Vai para o lixo.
     p.trash.push(card);
     events.push({ type: "cardMoved", cardId, from: "hand", to: "trash", player: active });
   } else {
@@ -46,7 +47,7 @@ export function playCard(
     events.push({ type: "cardMoved", cardId, from: "hand", to: "battle", player: active });
   }
 
-  checkAutoEndTurn(state, events);
+  triggerCard(state, card, "onPlay", events);
 }
 
 function findDigivolveTarget(state: GameState, player: 0 | 1, targetId: CardInstanceId): CardStack {
@@ -95,8 +96,8 @@ export function digivolve(
   events.push({ type: "cardDigivolved", sourceId, targetId: target.id });
   events.push({ type: "cardMoved", cardId: sourceId, from: "hand", to: "battle", player: active });
 
+  triggerCard(state, source, "whenDigivolving", events);
   draw(state, active, 1, events); // bônus de evolução
-  checkAutoEndTurn(state, events);
 }
 
 /** Eclode um Digi-Egg na área de criação (se vazia). */

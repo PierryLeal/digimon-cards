@@ -23,10 +23,17 @@ jogar/evoluir/eclodir/mover-da-criação/atacar, security check e condições de
 Simplificações documentadas (a refinar adiante): ações da criação são permitidas dentro
 da fase Main; passar o turno com memória positiva a descarta (oponente começa em 0).
 
-## ⬜ Fase 3 — Engine de efeitos + BT01 completo
+## 🚧 Fase 3 — Engine de efeitos + BT01 completo
 Stack de efeitos, hooks (On Play, When Digivolving, When Attacking, On Deletion, Security,
-End of Turn), `promptChoice`, registry por carta. Todos os efeitos de BT01.
-**Entregável:** decks reais de BT01 jogáveis ponta a ponta (via testes/simulação).
+End of Turn), `promptChoice`/`resolveChoice`, registry por carta.
+
+- **Fase 3a ✅ — Infraestrutura + piloto.** Registry, hooks, `dpModifier`, escolhas via
+  `pendingChoice`, efeitos de fim de turno; 7 cartas-piloto implementadas e testadas
+  (10 testes). Cobertura em [EFFECTS_COVERAGE](EFFECTS_COVERAGE.md).
+- **Fase 3b ⬜ — Restante do BT01.** Alvos do oponente, busca no deck, keywords
+  (`<Blocker>`, `<Piercing>`, `<Jamming>`, `<Security A. +N>`…), efeitos de Security.
+
+**Entregável final:** decks reais de BT01 jogáveis ponta a ponta (via testes/simulação).
 
 ## ⬜ Fase 4 — Servidor de tempo real
 ws + salas + loop de partida + views filtradas; auth (cadastro/login JWT); persistência de

@@ -8,6 +8,7 @@
 import type { GameEvent, PlayerIndex } from "@digimon/shared";
 import type { CardInstance, CardStack, GameState, PlayerState } from "./state.js";
 import { opponentOf } from "./state.js";
+import { triggerStack } from "./effects/triggers.js";
 
 export function endGame(state: GameState, winner: PlayerIndex, reason: string, events: GameEvent[]): void {
   if (state.status === "ended") return;
@@ -33,6 +34,7 @@ export function draw(state: GameState, player: PlayerIndex, n: number, events: G
 /** Move um stack inteiro (carta + fontes de evolução) para o lixo do dono. */
 export function deleteStack(state: GameState, stack: CardStack, events: GameEvent[]): void {
   const owner = stack.cards[0]!.owner;
+  triggerStack(state, stack, "onDeletion", events); // [On Deletion] do topo + fontes
   const p = state.players[owner];
   const idx = p.battle.findIndex((s) => s.id === stack.id);
   if (idx >= 0) p.battle.splice(idx, 1);
@@ -51,6 +53,7 @@ export function setMemory(state: GameState, value: number, events: GameEvent[]):
  * (negativa), o turno termina automaticamente.
  */
 export function checkAutoEndTurn(state: GameState, events: GameEvent[]): void {
+  if (state.pendingChoice) return; // aguardando uma escolha: não encerra o turno
   if (state.status === "playing" && state.memory < 0) {
     endTurn(state, events);
   }
@@ -94,6 +97,18 @@ export function endTurn(state: GameState, events: GameEvent[]): void {
   const active = state.activePlayer;
   state.phase = "end";
   events.push({ type: "phaseChanged", player: active, phase: "end", turn: state.turn });
+
+  // Efeitos agendados de fim de turno (ex.: MetalGreymon perde 3 de memória).
+  for (const d of state.delayedEndOfTurn) {
+    if (d.kind === "memory") {
+      const sign = d.owner === active ? 1 : -1;
+      setMemory(state, state.memory + sign * d.delta, events);
+    }
+  }
+  state.delayedEndOfTurn = [];
+  for (const stack of state.players[active].battle) {
+    triggerStack(state, stack, "endOfTurn", events);
+  }
 
   const opp = opponentOf(active);
   const nextMemory = Math.max(0, -state.memory);

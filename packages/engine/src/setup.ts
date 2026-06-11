@@ -67,6 +67,8 @@ export function createMatch(seed: MatchSeed): { state: GameState; events: GameEv
     nextId: counter + 1,
     status: "mulligan",
     winner: null,
+    pendingChoice: null,
+    delayedEndOfTurn: [],
   };
 
   const rng = createRng(state.rngState);

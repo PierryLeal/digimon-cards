@@ -113,8 +113,8 @@ describe("criação e evolução", () => {
 });
 
 describe("batalha e security", () => {
-  it("ataque à Security com Digimon de DP igual deleta o atacante", () => {
-    // Prepara um atacante (Agumon) vindo da criação, que pode atacar no mesmo turno.
+  it("ataque à Security: Digimon de Security é checado e vai para o lixo", () => {
+    // Atacante (Agumon) vindo da criação tem Yokomon como fonte → +1000 ao atacar = 3000.
     const start = bothKeep(newMatch(0));
     const agumonInHand = start.players[0].hand[0]!.id;
     let s = run(start, [[0, { type: "hatchEgg" }]]);
@@ -128,10 +128,11 @@ describe("batalha e security", () => {
     const secBefore = s.players[1].security.length;
     s = run(s, [[0, { type: "attack", attackerId, target: { kind: "security" } }]]);
 
-    // Security é Agumon (2000) vs atacante Agumon (2000) → empate → atacante deletado
-    expect(s.players[0].battle).toHaveLength(0);
+    // Atacante 3000 (Agumon 2000 + Yokomon herdado +1000) vence a Security Agumon (2000).
+    expect(s.players[0].battle).toHaveLength(1); // atacante sobrevive
+    expect(s.players[0].battle[0]!.suspended).toBe(true); // atacou → suspenso
     expect(s.players[1].security).toHaveLength(secBefore - 1);
-    expect(s.players[1].trash).toHaveLength(1);
+    expect(s.players[1].trash).toHaveLength(1); // carta de Security checada vai ao lixo
   });
 
   it("atacar a Security vazia vence o jogo", () => {

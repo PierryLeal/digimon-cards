@@ -30,27 +30,39 @@ packages/engine/src/effects/
 | `inherited`       | efeito concedido pela pilha de evolução (carta de baixo)  |
 | `continuous`      | efeito contínuo enquanto em jogo                          |
 
-## Forma de um efeito (esboço)
+## Forma de um efeito (real)
+
+Um arquivo por carta em `packages/engine/src/effects/BT01/`, registrado em `register.ts`:
 
 ```ts
-// effects/BT01/BT01-085.ts
+// effects/BT01/BT1-029.ts — Gabumon [On Play] Draw 1.
 import { defineEffect } from "../registry.js";
 
-export default defineEffect("BT1-085", {
-  onPlay(ctx) {
-    // ex.: "Ao jogar: +1 de memória."
-    ctx.gainMemory(1);
-  },
-  whenDigivolving(ctx) {
-    // ex.: "Ao evoluir: descarte 1 da Security do oponente."
-    ctx.opponent.trashSecurity(1);
-  },
+export default defineEffect("BT1-029", {
+  onPlay: (api) => api.draw(1),
 });
 ```
 
-`ctx` é uma API restrita e determinística sobre o estado (sem acesso a I/O). Efeitos que
-exigem decisão do jogador usam `ctx.choose(...)`, que pausa a resolução e dispara um
-`promptChoice` no protocolo; a resposta retoma a continuação.
+```ts
+// effects/BT01/BT1-001.ts — Yokomon [When Attacking] +1000 DP (herdado).
+export default defineEffect("BT1-001", {
+  dpModifier: ({ attacking }) => (attacking ? 1000 : 0),
+});
+```
+
+`api` (`EffectApi`) é uma interface restrita e determinística sobre o estado (sem I/O):
+
+| Método | Uso |
+| ------ | --- |
+| `api.gainMemory(n)` | controlador ganha `n` de memória |
+| `api.draw(n)` | controlador compra `n` cartas |
+| `api.unsuspendOwn(n)` | desvira `n` Digimons seus (auto se houver 1 alvo) |
+| `api.scheduleEndOfTurnMemory(d)` | agenda variação de memória no fim do turno |
+| `api.owner` / `api.opponent` | índices dos jogadores |
+
+Efeitos que exigem **escolha** definem um `pendingChoice` (via helpers como
+`unsuspendOwn`): o engine pausa, o servidor envia `promptChoice` e o jogador responde com
+`resolveChoice`. Veja `effects/api.ts` e `reducer.ts`.
 
 ## Cartas "vanilla"
 

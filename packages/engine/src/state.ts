@@ -44,6 +44,24 @@ export interface PlayerState {
 
 export type GameStatus = "mulligan" | "playing" | "ended";
 
+/** Ação terminal aplicada à seleção de uma escolha pendente. */
+export type PendingAction = { kind: "unsuspendStacks"; player: PlayerIndex };
+
+/** Uma escolha que o engine aguarda um jogador resolver (reação/alvo). */
+export interface PendingChoice {
+  choiceId: string;
+  /** Quem decide. */
+  player: PlayerIndex;
+  prompt: string;
+  options: { id: string; label: string }[];
+  min: number;
+  max: number;
+  action: PendingAction;
+}
+
+/** Efeito agendado para a fase End do turno atual. */
+export type DelayedEffect = { kind: "memory"; owner: PlayerIndex; delta: number };
+
 export interface GameState {
   matchId: string;
   players: [PlayerState, PlayerState];
@@ -59,6 +77,10 @@ export interface GameState {
   nextId: number;
   status: GameStatus;
   winner: PlayerIndex | null;
+  /** Escolha aguardando resolução (bloqueia outros comandos enquanto aberta). */
+  pendingChoice: PendingChoice | null;
+  /** Efeitos a aplicar no fim do turno atual. */
+  delayedEndOfTurn: DelayedEffect[];
 }
 
 /** Índice do oponente. */

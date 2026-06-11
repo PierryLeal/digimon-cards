@@ -9,10 +9,7 @@ import { opponentOf } from "./state.js";
 import type { EngineContext } from "./context.js";
 import { RuleError } from "./errors.js";
 import { deleteStack, endGame, findStack } from "./flow.js";
-
-function dpOf(ctx: EngineContext, stack: CardStack): number {
-  return ctx.db.require(stack.cards[0]!.number).dp ?? 0;
-}
+import { computeDp, triggerStack } from "./effects/triggers.js";
 
 export function attack(
   ctx: EngineContext,
@@ -36,6 +33,7 @@ export function attack(
 
   attacker.suspended = true;
   events.push({ type: "attackDeclared", attackerId, target });
+  triggerStack(state, attacker, "whenAttacking", events); // [When Attacking] topo + fontes
 
   if (target.kind === "security") {
     resolveSecurityAttack(ctx, state, attacker, events);
@@ -65,7 +63,7 @@ function resolveSecurityAttack(
   const secDef = ctx.db.require(sec.number);
 
   if (secDef.kind === "digimon") {
-    const attackerDp = dpOf(ctx, attacker);
+    const attackerDp = computeDp(ctx, state, attacker, true);
     const securityDp = secDef.dp ?? 0;
     // O Digimon de Security sempre vai para o lixo após a checagem.
     oppState.trash.push(sec);
@@ -98,8 +96,8 @@ function resolveDigimonAttack(
     throw new RuleError("target-not-suspended", "Só Digimons suspensos podem ser atacados.");
   }
 
-  const attackerDp = dpOf(ctx, attacker);
-  const defenderDp = dpOf(ctx, defender);
+  const attackerDp = computeDp(ctx, state, attacker, true);
+  const defenderDp = computeDp(ctx, state, defender, false);
   if (attackerDp >= defenderDp) deleteStack(state, defender, events);
   if (defenderDp >= attackerDp) deleteStack(state, attacker, events);
 }

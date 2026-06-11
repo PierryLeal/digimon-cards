@@ -1,0 +1,52 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 0%, #16213e, #0b0f1d 70%);
+  color: #e6e9f0;
+}
+
+.shell {
+  text-align: center;
+  padding: 2rem;
+}
+
+.shell h1 {
+  font-size: 2.4rem;
+  margin: 0 0 0.25rem;
+  background: linear-gradient(90deg, #4ea8ff, #b388ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tagline {
+  opacity: 0.7;
+  margin-top: 0;
+}
+
+.status[data-status="online"] strong {
+  color: #5ee08a;
+}
+.status[data-status="offline"] strong {
+  color: #ff6b6b;
+}
+.status[data-status="connecting"] strong {
+  color: #ffd166;
+}
+
+.phase {
+  margin-top: 2rem;
+  opacity: 0.6;
+  font-size: 0.9rem;
+}

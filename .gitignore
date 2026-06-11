@@ -1,0 +1,37 @@
+# dependências
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+build/
+*.tsbuildinfo
+
+# testes / cobertura
+coverage/
+
+# turbo
+.turbo/
+
+# ambiente
+.env
+.env.local
+.env.*.local
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# editores / SO
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# vite
+apps/web/.vite/
+
+# artes de cartas (IP Bandai) — nunca versionar
+**/card-images/
+**/assets/cards/

@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": ["node"],
+    "composite": false
+  },
+  "references": [
+    { "path": "../../packages/shared" },
+    { "path": "../../packages/cards" }
+  ],
+  "include": ["src"]
+}

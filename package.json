@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Jogo de cartas online de Digimon (fan-made / educacional) com regras oficiais e tempo real.",
-  "packageManager": "pnpm@9.12.0",
+  "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=20.0.0"
   },

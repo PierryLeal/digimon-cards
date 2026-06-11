@@ -1,0 +1,8 @@
+# Padroniza fim de linha como LF no repositório (evita ruído CRLF no Windows)
+* text=auto eol=lf
+
+# Binários
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary

@@ -35,10 +35,16 @@ End of Turn), `promptChoice`/`resolveChoice`, registry por carta.
 
 **Entregável final:** decks reais de BT01 jogáveis ponta a ponta (via testes/simulação).
 
-## ⬜ Fase 4 — Servidor de tempo real
-ws + salas + loop de partida + views filtradas; auth (cadastro/login JWT); persistência de
-matches/eventos em Postgres; estado ativo em Redis; reconexão.
-**Entregável:** dois clientes jogam uma partida real pela rede, sem vazar info oculta.
+## ✅ Fase 4 — Servidor de tempo real
+WebSocket autoritativo + salas (criar/entrar por código) + loop de partida rodando o
+engine + **views filtradas** por jogador (info oculta nunca trafega). Auth via HTTP
+(register/login, sessão por token, scrypt). Deck inicial pronto para jogar.
+**Entregável:** dois clientes autenticam, entram numa sala e jogam pela rede; 8 testes
+(sala/filtragem + round-trip HTTP/WS). ✅
+
+Pendente para integração com infra (precisa de Docker): persistência em **Postgres**
+(usuários/decks/replay) e estado ativo/escala em **Redis** — hoje em memória, atrás de
+interfaces trocáveis. Reconexão também fica para essa etapa.
 
 ## ⬜ Fase 5 — Cliente web (board)
 Tabuleiro com zonas, drag & drop, animações, log de ações, prompts de reação, indicadores

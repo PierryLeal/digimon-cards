@@ -2,6 +2,7 @@ export * from "./types.js";
 export * from "./zones.js";
 export * from "./phases.js";
 export * from "./protocol.js";
+export * from "./view.js";
 
 /** Constantes globais de regra do DCG. */
 export const RULES = {

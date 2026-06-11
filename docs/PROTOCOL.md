@@ -8,7 +8,17 @@ Contrato WebSocket entre `apps/web` e `apps/server`. Tipos canônicos em
 - **`ClientMessage`** (cliente → servidor): autenticação, salas, matchmaking e `command`.
 - **`ServerMessage`** (servidor → cliente): estado, eventos, prompts, erros.
 
-## Handshake
+## Autenticação (HTTP)
+
+Antes do WebSocket, o cliente obtém um token via HTTP:
+
+```
+POST /auth/register  { email, password }  → { user, token }
+POST /auth/login     { email, password }  → { user, token }
+GET  /health                              → { status: "ok", uptime }
+```
+
+## Handshake (WS)
 
 ```
 web → server : { type: "authenticate", token }

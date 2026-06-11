@@ -76,6 +76,7 @@ Scripts úteis:
 
 ## Status
 
-🚧 **Fase 3a em andamento — Engine de efeitos.** Infraestrutura de efeitos (registry,
-hooks, modificadores de DP, escolhas/reações) + 7 cartas-piloto reais do BT01 (24 testes
-no engine). Próximo: implementar o restante dos efeitos do BT01 (Fase 3b).
+🚧 **Fase 4 concluída — Servidor em tempo real.** WebSocket autoritativo com salas, auth
+(HTTP), loop de partida rodando o engine e **views filtradas** (info oculta não vaza).
+Dois clientes já jogam pela rede. Engine de efeitos parcial (Fase 3a). Próximo: cliente
+web do tabuleiro (Fase 5).

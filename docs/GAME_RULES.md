@@ -63,5 +63,22 @@ Ocultas ao oponente: `deck`, `eggDeck`, `hand`, `security`.
 - Multi-ataque / re-suspensão por efeitos (Fase 3).
 - Resolução simultânea de gatilhos (ordem via stack — Fase 3).
 
+## Implementação atual (Fase 2)
+
+Já no engine (`packages/engine`), com testes:
+
+- Setup (security 5, mão 5), mulligan único, 1º turno sem compra.
+- Fases via `beginTurn`/`endTurn`; ações da criação permitidas dentro da Main.
+- Memória do ponto de vista do ativo; gasto em jogar/evoluir. **Auto-passagem** quando
+  fica negativa; o oponente começa com `max(0, -memória)`. Passar com memória positiva a
+  descarta (oponente começa em 0).
+- Evolução por cor/nível (`digivolveCosts`) com bônus de compra; enjoo de invocação.
+- Batalha: ataque suspende o atacante; DP comparado; empate deleta ambos. Security check
+  (Digimon batalha; Tamer/Option vão ao lixo — efeitos só na Fase 3).
+- Vitória: atacar Security vazia; derrota por deck-out na compra.
+
+Ainda **não** implementado (Fases seguintes): efeitos de carta e timing/stack, `<Security>`
+e demais palavras-chave, bloqueio (`<Blocker>`), `<Rush>`, efeitos herdados.
+
 > Este documento cresce junto com o engine. Cada regra implementada deve ter teste
 > correspondente em `packages/engine/src/**/*.test.ts`.

@@ -76,5 +76,6 @@ Scripts úteis:
 
 ## Status
 
-🚧 **Fase 1 concluída — Pipeline de cartas.** Monorepo + base BT01 real (115 cartas)
-importada e validada. Próximo: core do engine de regras (Fase 2).
+🚧 **Fase 2 concluída — Core do engine.** Reducer puro e determinístico com setup,
+mulligan, fases, memória, evolução, batalha e security (14 testes). Base BT01 real (115
+cartas). Próximo: engine de efeitos das cartas (Fase 3).

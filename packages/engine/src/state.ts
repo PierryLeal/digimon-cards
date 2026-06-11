@@ -3,10 +3,7 @@
  * As transições vivem no reducer (reducer.ts). Veja docs/ARCHITECTURE.md.
  */
 
-import type { CardNumber } from "@digimon/shared";
-import type { CardInstanceId } from "@digimon/shared";
-import type { CardOrientation } from "@digimon/shared";
-import type { Phase, PlayerIndex } from "@digimon/shared";
+import type { CardInstanceId, CardNumber, Phase, PlayerIndex } from "@digimon/shared";
 
 /** Uma instância concreta de carta dentro da partida. */
 export interface CardInstance {
@@ -14,48 +11,57 @@ export interface CardInstance {
   /** Referência à definição estática (em @digimon/cards). */
   number: CardNumber;
   owner: PlayerIndex;
-  orientation: CardOrientation;
 }
 
 /**
- * Uma "torre" de cartas na área de batalha ou criação: a carta do topo é a
- * Digimon ativa; as de baixo formam a pilha de evolução (inherited).
+ * Uma "torre" na área de batalha ou criação: o topo (índice 0) é a carta atual
+ * (Digimon/Tamer); as de baixo formam a pilha de evolução (efeitos herdados).
  */
 export interface CardStack {
-  /** Topo (índice 0) é a carta atual; demais são a pilha de evolução. */
+  /** Id do stack (estável = id da carta que está no topo ao ser criado). */
+  id: CardInstanceId;
+  /** Topo (índice 0) é a carta atual; demais são fontes de evolução. */
   cards: CardInstance[];
-  orientation: CardOrientation;
-  /** Modificador de DP acumulado nesta vez (efeitos temporários). */
-  dpModifier: number;
+  suspended: boolean;
+  /** Enjoo de invocação: foi jogado neste turno (não pode atacar). */
+  playedThisTurn: boolean;
 }
 
 export interface PlayerState {
-  /** Id do usuário/sessão dono deste lado. */
   id: string;
-  deck: CardInstance[];
+  deck: CardInstance[]; // índice 0 = topo
   eggDeck: CardInstance[];
   hand: CardInstance[];
-  security: CardInstance[];
+  security: CardInstance[]; // índice 0 = topo
   trash: CardInstance[];
-  /** Slot único da área de criação (ovo/Digimon em criação), se houver. */
   breeding: CardStack | null;
-  /** Digimons/Tamers/Options em jogo. */
   battle: CardStack[];
+  /** Já fez (ou recusou) o mulligan. */
+  hasMulliganed: boolean;
+  /** Já moveu da criação para a batalha neste turno (limite 1/turno). */
+  movedFromBreedingThisTurn: boolean;
 }
+
+export type GameStatus = "mulligan" | "playing" | "ended";
 
 export interface GameState {
   matchId: string;
   players: [PlayerState, PlayerState];
   activePlayer: PlayerIndex;
+  firstPlayer: PlayerIndex;
   phase: Phase;
   turn: number;
-  /**
-   * Medidor de memória, sempre do ponto de vista do jogador ativo:
-   * positivo = a favor do ativo; negativo = passou para o oponente.
-   */
+  /** Memória do ponto de vista do jogador ativo (positivo = a favor dele). */
   memory: number;
-  /** Semente do RNG (para retomar de forma determinística). */
-  rngSeed: number;
-  /** Vencedor, quando a partida termina. */
+  /** Estado interno do RNG (persistido para determinismo/replay). */
+  rngState: number;
+  /** Contador para gerar ids de instância. */
+  nextId: number;
+  status: GameStatus;
   winner: PlayerIndex | null;
+}
+
+/** Índice do oponente. */
+export function opponentOf(p: PlayerIndex): PlayerIndex {
+  return p === 0 ? 1 : 0;
 }

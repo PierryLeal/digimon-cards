@@ -13,10 +13,15 @@ artes alternativas, normaliza para o schema e grava `packages/cards/data/bt01.js
 (validado por Zod). 115 cartas: 8 Digi-Eggs, 78 Digimon, 5 Tamers, 24 Options.
 **Entregável:** base BT01 tipada e validada, carregável pelo `CardDatabase` (com testes).
 
-## ⬜ Fase 2 — Core do engine (sem efeitos)
-Estado, zonas, setup + mulligan, fases (Unsuspend→Draw→Breeding→Main→End), memória,
-jogar/evoluir/atacar, security check, condições de vitória. Cartas vanilla.
-**Entregável:** partida completa simulada por testes unitários (Vitest).
+## ✅ Fase 2 — Core do engine (sem efeitos)
+Reducer puro e determinístico (`reduce(ctx, state, command, player)`), estado/zonas,
+setup + mulligan, fases (Unsuspend→Draw→Breeding→Main→End), memória + passagem de turno,
+jogar/evoluir/eclodir/mover-da-criação/atacar, security check e condições de vitória
+(security vazia + deck-out). Cartas vanilla.
+**Entregável:** partida completa simulada por testes unitários (14 testes no engine). ✅
+
+Simplificações documentadas (a refinar adiante): ações da criação são permitidas dentro
+da fase Main; passar o turno com memória positiva a descarta (oponente começa em 0).
 
 ## ⬜ Fase 3 — Engine de efeitos + BT01 completo
 Stack de efeitos, hooks (On Play, When Digivolving, When Attacking, On Deletion, Security,

@@ -76,7 +76,18 @@ Scripts úteis:
 
 ## Status
 
-🚧 **Fase 4 concluída — Servidor em tempo real.** WebSocket autoritativo com salas, auth
-(HTTP), loop de partida rodando o engine e **views filtradas** (info oculta não vaza).
-Dois clientes já jogam pela rede. Engine de efeitos parcial (Fase 3a). Próximo: cliente
-web do tabuleiro (Fase 5).
+🎮 **Jogável! Fase 5 concluída — Cliente web.** Login → lobby → tabuleiro em React,
+jogando em tempo real entre dois navegadores via WebSocket autoritativo. Engine de efeitos
+parcial (Fase 3a, 7 cartas-piloto). Próximos: deckbuilder/contas (Fase 6) e robustez/deploy
+(Fase 7).
+
+### Rodar local
+
+```bash
+pnpm install
+pnpm --filter @digimon/server dev   # servidor em :8080
+pnpm --filter @digimon/web dev       # web em :5173
+```
+
+Abra `http://localhost:5173` em duas janelas (uma anônima): cadastre dois usuários, um cria
+a sala, o outro entra pelo código, ambos clicam "Pronto" e jogam.

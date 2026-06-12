@@ -19,7 +19,7 @@ import { config } from "./config.js";
 import { AuthError, AuthService, type User } from "./auth.js";
 import { RoomError, RoomManager } from "./room.js";
 import type { GameRoom } from "./room.js";
-import type { DeckLists } from "./cards.js";
+import { db, type DeckLists } from "./cards.js";
 
 interface Session {
   user: User | null;
@@ -188,8 +188,20 @@ function requireRoom(session: Session): GameRoom {
 // ───────────────────────────── HTTP (health + auth) ─────────────────────────────
 
 function handleHttp(auth: AuthService, req: IncomingMessage, res: ServerResponse): void {
+  // CORS (cliente web em outra origem durante o dev).
+  res.setHeader("access-control-allow-origin", "*");
+  res.setHeader("access-control-allow-headers", "content-type");
+  res.setHeader("access-control-allow-methods", "GET, POST, OPTIONS");
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
   if (req.method === "GET" && req.url === "/health") {
     return json(res, 200, { status: "ok", uptime: process.uptime() });
+  }
+  if (req.method === "GET" && req.url === "/cards") {
+    return json(res, 200, db.all());
   }
   if (req.method === "POST" && (req.url === "/auth/register" || req.url === "/auth/login")) {
     return readJson(req, (body) => {

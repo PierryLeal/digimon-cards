@@ -1,6 +1,15 @@
 :root {
   color-scheme: dark;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --bg: #0b0f1d;
+  --panel: #141a2e;
+  --panel-2: #1c2440;
+  --line: #2a3354;
+  --accent: #4ea8ff;
+  --accent-2: #b388ff;
+  --good: #5ee08a;
+  --bad: #ff6b6b;
+  --warn: #ffd166;
 }
 
 * {
@@ -10,43 +19,305 @@
 body {
   margin: 0;
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(circle at 50% 0%, #16213e, #0b0f1d 70%);
+  background: radial-gradient(circle at 50% -10%, #16213e, var(--bg) 70%);
   color: #e6e9f0;
 }
 
-.shell {
-  text-align: center;
-  padding: 2rem;
+button {
+  cursor: pointer;
+  background: var(--panel-2);
+  color: inherit;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  font: inherit;
+  transition: border-color 0.15s, transform 0.05s;
+}
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-.shell h1 {
-  font-size: 2.4rem;
-  margin: 0 0 0.25rem;
-  background: linear-gradient(90deg, #4ea8ff, #b388ff);
+input {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  color: inherit;
+  font: inherit;
+}
+
+.muted {
+  opacity: 0.55;
+  font-size: 0.8em;
+}
+.error {
+  color: var(--bad);
+}
+.error.banner {
+  margin: 0;
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 107, 107, 0.12);
+  border-radius: 8px;
+}
+
+/* ---- Painéis (auth/lobby) ---- */
+.card-panel {
+  max-width: 420px;
+  margin: 8vh auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.card-panel h1 {
+  margin: 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
+.auth .tabs,
+.join {
+  display: flex;
+  gap: 0.5rem;
+}
+.auth .tabs button.active {
+  border-color: var(--accent);
+}
+.card-panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.players {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
 
-.tagline {
+/* ---- Tabuleiro ---- */
+.board {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.topbar {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+}
+.topbar .memory {
+  color: var(--warn);
+  font-weight: 600;
+}
+.topbar .you-turn {
+  color: var(--good);
+  font-weight: 700;
+}
+
+.player-area {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.7rem;
+}
+.player-area.opponent {
+  border-top: 2px solid var(--bad);
+}
+.player-area.mine {
+  border-bottom: 2px solid var(--good);
+}
+.rows {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.lane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 120px;
+}
+.lane-title {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.lane-cards {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  min-height: 80px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 110px;
+  min-height: 76px;
+  text-align: left;
+  background: linear-gradient(160deg, var(--panel-2), #232c4e);
+}
+.stack.suspended {
+  transform: rotate(6deg);
+  opacity: 0.85;
+}
+.stack.targetable {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(78, 168, 255, 0.3);
+}
+.stack-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.stack-dp {
+  color: var(--warn);
+  font-size: 0.75rem;
+}
+.stack-depth {
+  font-size: 0.7rem;
   opacity: 0.7;
-  margin-top: 0;
+}
+.tag {
+  font-size: 0.65rem;
+  color: var(--bad);
 }
 
-.status[data-status="online"] strong {
-  color: #5ee08a;
+.security-zone {
+  align-self: center;
+  font-weight: 600;
 }
-.status[data-status="offline"] strong {
-  color: #ff6b6b;
+.security-zone.targetable {
+  border-color: var(--bad);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.3);
 }
-.status[data-status="connecting"] strong {
-  color: #ffd166;
+.security-zone.mine {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
 }
 
-.phase {
-  margin-top: 2rem;
-  opacity: 0.6;
-  font-size: 0.9rem;
+.zone-counts {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin-bottom: 0.5rem;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.actions,
+.mulligan {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.actions .cancel {
+  border-color: var(--warn);
+}
+.result {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.hand {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+}
+.hand-card {
+  position: relative;
+}
+.hand-face {
+  display: flex;
+  flex-direction: column;
+  width: 96px;
+  min-height: 64px;
+  align-items: flex-start;
+  text-align: left;
+}
+.hand-card.selected .hand-face {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 2px rgba(179, 136, 255, 0.4);
+}
+.hand-actions {
+  position: absolute;
+  bottom: -2.4rem;
+  left: 0;
+  display: flex;
+  gap: 0.3rem;
+  z-index: 5;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 20;
+}
+.modal-body {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 320px;
+}
+.option {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.log {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.8rem;
+}
+.log ul {
+  margin: 0.3rem 0 0;
+  padding-left: 1rem;
+  max-height: 120px;
+  overflow: auto;
+  opacity: 0.8;
 }

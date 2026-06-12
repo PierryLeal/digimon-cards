@@ -46,10 +46,14 @@ Pendente para integração com infra (precisa de Docker): persistência em **Pos
 (usuários/decks/replay) e estado ativo/escala em **Redis** — hoje em memória, atrás de
 interfaces trocáveis. Reconexão também fica para essa etapa.
 
-## ⬜ Fase 5 — Cliente web (board)
-Tabuleiro com zonas, drag & drop, animações, log de ações, prompts de reação, indicadores
-de turno e memória.
-**Entregável:** jogar uma partida completa pelo navegador.
+## ✅ Fase 5 — Cliente web (board)
+Cliente React: login/registro, lobby (criar/entrar por código + pronto) e tabuleiro
+consumindo a `stateView` — zonas, mão, medidor de memória, indicadores de turno/fase, log
+de ações e modal de escolha (`resolveChoice`). Interação por clique (selecionar carta →
+Jogar/Evoluir; selecionar Digimon → atacar Security/Digimon).
+**Entregável:** dois navegadores jogam uma partida em tempo real. ✅
+
+A refinar (próximas iterações): drag & drop, animações, deckbuilder (Fase 6), polish.
 
 ## ⬜ Fase 6 — Lobby, contas e deckbuilder
 Telas de login/registro, perfil, salas por código + matchmaking, construtor de decks com

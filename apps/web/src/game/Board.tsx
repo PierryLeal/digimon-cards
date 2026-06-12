@@ -5,10 +5,11 @@ import type {
   GameEvent,
   MatchView,
   PlayerIndex,
-  PlayerView,
   StackView,
 } from "@digimon/shared";
 import { useStore } from "../store.js";
+import { Card } from "./Card.js";
+import { HowToPlay } from "./HowToPlay.js";
 
 type Mode =
   | { kind: "idle" }
@@ -16,7 +17,7 @@ type Mode =
   | { kind: "attack"; attackerId: string };
 
 export function Board({ view }: { view: MatchView }): JSX.Element {
-  const { cards, sendCommand, log, error } = useStore();
+  const { cards, sendCommand, log, error, hints, toggleHints, openHowTo } = useStore();
   const [selectedHand, setSelectedHand] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>({ kind: "idle" });
   const [mulliganed, setMulliganed] = useState(false);
@@ -26,14 +27,13 @@ export function Board({ view }: { view: MatchView }): JSX.Element {
   const opp = (1 - me) as PlayerIndex;
   const myTurn = view.activePlayer === me && view.status === "playing" && !view.choice;
 
-  const name = (number: string): string => cards[number]?.name ?? number;
-  const dp = (number: string): number | undefined => cards[number]?.dp;
+  const name = (n: string): string => cards[n]?.name ?? n;
+  const dp = (n: string): number | undefined => cards[n]?.dp;
 
   const reset = (): void => {
     setSelectedHand(null);
     setMode({ kind: "idle" });
   };
-
   const play = (cardId: string): void => {
     sendCommand({ type: "playCard", cardId });
     reset();
@@ -46,16 +46,9 @@ export function Board({ view }: { view: MatchView }): JSX.Element {
     sendCommand({ type: "attack", attackerId, target });
     reset();
   };
-
-  const onMyStackClick = (stack: StackView): void => {
-    if (mode.kind === "digivolve") return digivolve(mode.sourceId, stack.id);
-    if (myTurn && !stack.suspended) setMode({ kind: "attack", attackerId: stack.id });
-  };
-  const onOppStackClick = (stack: StackView): void => {
-    if (mode.kind === "attack") attack(mode.attackerId, { kind: "digimon", cardId: stack.id });
-  };
-  const onOppSecurityClick = (): void => {
-    if (mode.kind === "attack") attack(mode.attackerId, { kind: "security" });
+  const onMyStackClick = (s: StackView): void => {
+    if (mode.kind === "digivolve") return digivolve(mode.sourceId, s.id);
+    if (myTurn && !s.suspended) setMode({ kind: "attack", attackerId: s.id });
   };
 
   const them = view.players[opp];
@@ -63,127 +56,133 @@ export function Board({ view }: { view: MatchView }): JSX.Element {
 
   return (
     <div className="board">
-      <TopBar view={view} />
+      <TopBar
+        view={view}
+        hints={hints}
+        onToggleHints={toggleHints}
+        onHowTo={openHowTo}
+      />
+      <HowToPlay />
       {error && <p className="error banner">{error}</p>}
+
+      <MemoryGauge view={view} />
+      {hints && <HintBar text={hintFor(view, mode)} />}
 
       {/* Oponente */}
       <section className="player-area opponent">
-        <ZoneCounts p={them} label="Oponente" />
-        <div className="rows">
-          <Lane title="Criação">{them.breeding && <Stack s={them.breeding} name={name} dp={dp} />}</Lane>
+        <div className="hand-zone opp">
+          <span className="zone-tag">Mão do oponente ({them.handCount})</span>
+          <FanOfBacks count={them.handCount} />
+        </div>
+        <div className="field">
+          <Lane title="Criação">
+            {them.breeding && <Card number={them.breeding.cards[0]!.number} name={name(them.breeding.cards[0]!.number)} dp={dp(them.breeding.cards[0]!.number)} suspended={them.breeding.suspended} depth={them.breeding.cards.length} />}
+          </Lane>
           <Lane title="Batalha">
             {them.battle.map((s) => (
-              <Stack
+              <Card
                 key={s.id}
-                s={s}
-                name={name}
-                dp={dp}
-                onClick={() => onOppStackClick(s)}
+                number={s.cards[0]!.number}
+                name={name(s.cards[0]!.number)}
+                dp={dp(s.cards[0]!.number)}
+                suspended={s.suspended}
+                depth={s.cards.length}
                 targetable={mode.kind === "attack"}
+                onClick={mode.kind === "attack" ? () => attack(mode.attackerId, { kind: "digimon", cardId: s.id }) : undefined}
               />
             ))}
           </Lane>
-          <button
-            className={`security-zone ${mode.kind === "attack" ? "targetable" : ""}`}
-            onClick={onOppSecurityClick}
-            disabled={mode.kind !== "attack"}
-          >
-            🛡 Security ({them.securityCount})
-          </button>
+          <Pile label="Deck" count={them.deckCount} faceDown />
+          <SecurityPile
+            count={them.securityCount}
+            targetable={mode.kind === "attack"}
+            onClick={mode.kind === "attack" ? () => attack(mode.attackerId, { kind: "security" }) : undefined}
+          />
+          <TrashPile trash={them.trash} name={name} dp={dp} />
         </div>
       </section>
 
-      {/* Centro: controles */}
+      {/* Centro */}
       <section className="controls">
         {view.status === "mulligan" ? (
           <div className="mulligan">
             <span>Mão inicial — manter?</span>
-            <button
-              disabled={mulliganed}
-              onClick={() => {
-                sendCommand({ type: "mulligan", keep: true });
-                setMulliganed(true);
-              }}
-            >
-              Manter
-            </button>
-            <button
-              disabled={mulliganed}
-              onClick={() => {
-                sendCommand({ type: "mulligan", keep: false });
-                setMulliganed(true);
-              }}
-            >
-              Trocar
-            </button>
+            <button disabled={mulliganed} onClick={() => { sendCommand({ type: "mulligan", keep: true }); setMulliganed(true); }}>Manter</button>
+            <button disabled={mulliganed} onClick={() => { sendCommand({ type: "mulligan", keep: false }); setMulliganed(true); }}>Trocar</button>
           </div>
         ) : (
           <div className="actions">
-            <button disabled={!myTurn} onClick={() => sendCommand({ type: "hatchEgg" })}>
-              Eclodir ovo
-            </button>
-            <button disabled={!myTurn} onClick={() => sendCommand({ type: "moveFromBreeding" })}>
-              Mover da criação
-            </button>
-            <button disabled={!myTurn} onClick={() => sendCommand({ type: "passTurn" })}>
-              Passar turno
-            </button>
-            {mode.kind !== "idle" && (
-              <button className="cancel" onClick={reset}>
-                Cancelar ({mode.kind})
-              </button>
-            )}
+            <button disabled={!myTurn} onClick={() => sendCommand({ type: "hatchEgg" })}>🥚 Eclodir ovo</button>
+            <button disabled={!myTurn} onClick={() => sendCommand({ type: "moveFromBreeding" })}>⬆ Mover da criação</button>
+            <button disabled={!myTurn} onClick={() => sendCommand({ type: "passTurn" })}>⟳ Passar turno</button>
+            {mode.kind !== "idle" && <button className="cancel" onClick={reset}>✕ Cancelar</button>}
           </div>
         )}
         {view.status === "ended" && (
-          <p className="result">
-            {view.winner === me ? "🏆 Você venceu!" : "Derrota."}
-          </p>
+          <p className="result">{view.winner === me ? "🏆 Você venceu!" : "Derrota."}</p>
         )}
       </section>
 
       {/* Meu lado */}
       <section className="player-area mine">
-        <div className="rows">
+        <div className="field">
           <Lane title="Criação">
             {mine.breeding && (
-              <Stack
-                s={mine.breeding}
-                name={name}
-                dp={dp}
-                onClick={() => mode.kind === "digivolve" && digivolve(mode.sourceId, mine.breeding!.id)}
+              <Card
+                number={mine.breeding.cards[0]!.number}
+                name={name(mine.breeding.cards[0]!.number)}
+                dp={dp(mine.breeding.cards[0]!.number)}
+                suspended={mine.breeding.suspended}
+                depth={mine.breeding.cards.length}
                 targetable={mode.kind === "digivolve"}
+                onClick={mode.kind === "digivolve" ? () => digivolve(mode.sourceId, mine.breeding!.id) : undefined}
               />
             )}
           </Lane>
           <Lane title="Batalha">
             {mine.battle.map((s) => (
-              <Stack
+              <Card
                 key={s.id}
-                s={s}
-                name={name}
-                dp={dp}
-                onClick={() => onMyStackClick(s)}
+                number={s.cards[0]!.number}
+                name={name(s.cards[0]!.number)}
+                dp={dp(s.cards[0]!.number)}
+                suspended={s.suspended}
+                depth={s.cards.length}
                 targetable={mode.kind === "digivolve" || (myTurn && !s.suspended)}
+                onClick={() => onMyStackClick(s)}
               />
             ))}
           </Lane>
-          <div className="security-zone mine">🛡 Security ({mine.securityCount})</div>
+          <Pile label="Deck" count={mine.deckCount} faceDown />
+          <SecurityPile count={mine.securityCount} />
+          <TrashPile trash={mine.trash} name={name} dp={dp} />
         </div>
-        <ZoneCounts p={mine} label="Você" />
-        <Hand
-          hand={mine.hand ?? []}
-          name={name}
-          dp={dp}
-          selected={selectedHand}
-          enabled={myTurn}
-          onSelect={(id) => setSelectedHand((cur) => (cur === id ? null : id))}
-          onPlay={play}
-          onDigivolve={(id) => setMode({ kind: "digivolve", sourceId: id })}
-        />
+
+        <div className="hand-zone">
+          <span className="zone-tag">Sua mão ({mine.hand?.length ?? 0})</span>
+          <div className="hand">
+            {(mine.hand ?? []).map((c) => (
+              <div key={c.id} className="hand-card">
+                <Card
+                  number={c.number}
+                  name={name(c.number)}
+                  dp={dp(c.number)}
+                  size="lg"
+                  selected={selectedHand === c.id}
+                  onClick={myTurn ? () => setSelectedHand((cur) => (cur === c.id ? null : c.id)) : undefined}
+                />
+                {selectedHand === c.id && myTurn && (
+                  <div className="hand-actions">
+                    <button onClick={() => play(c.id)}>Jogar</button>
+                    <button onClick={() => setMode({ kind: "digivolve", sourceId: c.id })}>Evoluir</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* Escolha pendente */}
       {view.choice && (
         <div className="modal">
           <div className="modal-body">
@@ -193,21 +192,14 @@ export function Board({ view }: { view: MatchView }): JSX.Element {
                 <input
                   type="checkbox"
                   checked={choice.includes(o.id)}
-                  onChange={(e) =>
-                    setChoice((c) =>
-                      e.target.checked ? [...c, o.id] : c.filter((x) => x !== o.id),
-                    )
-                  }
+                  onChange={(e) => setChoice((c) => (e.target.checked ? [...c, o.id] : c.filter((x) => x !== o.id)))}
                 />
                 {name(o.label)} <span className="muted">{o.id}</span>
               </label>
             ))}
             <button
               disabled={choice.length < view.choice.min || choice.length > view.choice.max}
-              onClick={() => {
-                sendCommand({ type: "resolveChoice", choiceId: view.choice!.choiceId, selection: choice });
-                setChoice([]);
-              }}
+              onClick={() => { sendCommand({ type: "resolveChoice", choiceId: view.choice!.choiceId, selection: choice }); setChoice([]); }}
             >
               Confirmar
             </button>
@@ -220,28 +212,62 @@ export function Board({ view }: { view: MatchView }): JSX.Element {
   );
 }
 
-function TopBar({ view }: { view: MatchView }): JSX.Element {
-  const turnLabel = view.activePlayer === view.you ? "Seu turno" : "Turno do oponente";
+function hintFor(view: MatchView, mode: Mode): string {
+  if (view.choice) return "Há uma escolha a resolver — selecione no destaque e confirme.";
+  if (view.status === "mulligan") return "Decida sua mão inicial: Manter ou Trocar.";
+  if (view.status === "ended") return view.winner === view.you ? "Fim de jogo — você venceu! 🏆" : "Fim de jogo.";
+  if (view.activePlayer !== view.you) return "Aguardando o oponente jogar…";
+  if (mode.kind === "digivolve") return "Clique no Digimon (em jogo ou na criação) que vai evoluir.";
+  if (mode.kind === "attack") return "Clique na 🛡 Security do oponente ou num Digimon suspenso para atacar.";
+  return "Seu turno: clique uma carta para Jogar/Evoluir, ataque com um Digimon ativo, ou passe o turno.";
+}
+
+function TopBar({
+  view,
+  hints,
+  onToggleHints,
+  onHowTo,
+}: {
+  view: MatchView;
+  hints: boolean;
+  onToggleHints: () => void;
+  onHowTo: () => void;
+}): JSX.Element {
   return (
     <header className="topbar">
       <span>Turno {view.turn}</span>
       <span>Fase: {view.phase}</span>
-      <span className="memory">Memória: {view.memory}</span>
-      <span className={view.activePlayer === view.you ? "you-turn" : ""}>{turnLabel}</span>
+      <span className={view.activePlayer === view.you ? "you-turn" : ""}>
+        {view.activePlayer === view.you ? "● Seu turno" : "○ Turno do oponente"}
+      </span>
+      <span className="spacer" />
+      <label className="switch">
+        <input type="checkbox" checked={hints} onChange={onToggleHints} /> Dicas
+      </label>
+      <button className="ghost" onClick={onHowTo}>Como jogar</button>
     </header>
   );
 }
 
-function ZoneCounts({ p, label }: { p: PlayerView; label: string }): JSX.Element {
+function MemoryGauge({ view }: { view: MatchView }): JSX.Element {
+  const myMem = view.activePlayer === view.you ? view.memory : -view.memory;
+  const pct = ((myMem + 10) / 20) * 100;
   return (
-    <div className="zone-counts">
-      <strong>{label}</strong>
-      <span>Mão: {p.handCount}</span>
-      <span>Deck: {p.deckCount}</span>
-      <span>Ovos: {p.eggDeckCount}</span>
-      <span>Lixo: {p.trash.length}</span>
+    <div className="memory-gauge">
+      <span className="mg-side">Oponente</span>
+      <div className="mg-track">
+        <div className="mg-center" />
+        <div className="mg-marker" style={{ left: `${pct}%` }}>
+          <span>{myMem > 0 ? `+${myMem}` : myMem}</span>
+        </div>
+      </div>
+      <span className="mg-side right">Você</span>
     </div>
   );
+}
+
+function HintBar({ text }: { text: string }): JSX.Element {
+  return <div className="hint-bar">💡 {text}</div>;
 }
 
 function Lane({ title, children }: { title: string; children: React.ReactNode }): JSX.Element {
@@ -253,69 +279,59 @@ function Lane({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
-function Stack({
-  s,
-  name,
-  dp,
-  onClick,
-  targetable,
-}: {
-  s: StackView;
-  name: (n: string) => string;
-  dp: (n: string) => number | undefined;
-  onClick?: () => void;
-  targetable?: boolean;
-}): JSX.Element {
-  const top = s.cards[0]!;
+function FanOfBacks({ count }: { count: number }): JSX.Element {
+  const shown = Math.min(count, 10);
   return (
-    <button
-      className={`stack ${s.suspended ? "suspended" : ""} ${targetable ? "targetable" : ""}`}
-      onClick={onClick}
-      disabled={!onClick}
-    >
-      <span className="stack-name">{name(top.number)}</span>
-      <span className="stack-dp">{dp(top.number) ?? "—"} DP</span>
-      {s.cards.length > 1 && <span className="stack-depth">⛁ {s.cards.length}</span>}
-      {s.suspended && <span className="tag">suspenso</span>}
-    </button>
+    <div className="fan">
+      {Array.from({ length: shown }, (_, i) => (
+        <Card key={i} faceDown size="sm" />
+      ))}
+    </div>
   );
 }
 
-function Hand({
-  hand,
-  name,
-  dp,
-  selected,
-  enabled,
-  onSelect,
-  onPlay,
-  onDigivolve,
+function Pile({ label, count, faceDown }: { label: string; count: number; faceDown?: boolean }): JSX.Element {
+  return (
+    <div className="pile">
+      <Card faceDown={faceDown} size="sm" />
+      <span className="pile-label">
+        {label} {count}
+      </span>
+    </div>
+  );
+}
+
+function SecurityPile({
+  count,
+  targetable,
+  onClick,
 }: {
-  hand: CardView[];
-  name: (n: string) => string;
-  dp: (n: string) => number | undefined;
-  selected: string | null;
-  enabled: boolean;
-  onSelect: (id: string) => void;
-  onPlay: (id: string) => void;
-  onDigivolve: (id: string) => void;
+  count: number;
+  targetable?: boolean;
+  onClick?: () => void;
 }): JSX.Element {
   return (
-    <div className="hand">
-      {hand.map((c) => (
-        <div key={c.id} className={`hand-card ${selected === c.id ? "selected" : ""}`}>
-          <button className="hand-face" onClick={() => onSelect(c.id)} disabled={!enabled}>
-            <span>{name(c.number)}</span>
-            <span className="muted">{dp(c.number) ? `${dp(c.number)} DP` : c.number}</span>
-          </button>
-          {selected === c.id && enabled && (
-            <div className="hand-actions">
-              <button onClick={() => onPlay(c.id)}>Jogar</button>
-              <button onClick={() => onDigivolve(c.id)}>Evoluir</button>
-            </div>
-          )}
-        </div>
-      ))}
+    <div className={`pile security ${targetable ? "targetable" : ""}`} onClick={onClick}>
+      <Card faceDown size="sm" targetable={targetable} onClick={onClick} />
+      <span className="pile-label">🛡 {count}</span>
+    </div>
+  );
+}
+
+function TrashPile({
+  trash,
+  name,
+  dp,
+}: {
+  trash: CardView[];
+  name: (n: string) => string;
+  dp: (n: string) => number | undefined;
+}): JSX.Element {
+  const top = trash[trash.length - 1];
+  return (
+    <div className="pile">
+      {top ? <Card number={top.number} name={name(top.number)} dp={dp(top.number)} size="sm" /> : <Card faceDown size="sm" />}
+      <span className="pile-label">🗑 {trash.length}</span>
     </div>
   );
 }

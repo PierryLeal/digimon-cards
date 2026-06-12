@@ -5,6 +5,13 @@ import { GameSocket } from "./net/socket.js";
 
 export type Screen = "auth" | "lobby" | "match";
 
+const HINTS_KEY = "dgm.hints";
+const TUTORIAL_KEY = "dgm.seenTutorial";
+const readHints = (): boolean =>
+  typeof localStorage === "undefined" ? true : localStorage.getItem(HINTS_KEY) !== "0";
+const seenTutorial = (): boolean =>
+  typeof localStorage !== "undefined" && localStorage.getItem(TUTORIAL_KEY) === "1";
+
 interface GameStore {
   screen: Screen;
   userId?: string;
@@ -15,6 +22,9 @@ interface GameStore {
   log: GameEvent[];
   error?: string;
   busy: boolean;
+  /** Preferências de UI. */
+  hints: boolean;
+  howToOpen: boolean;
 
   authenticate(mode: "login" | "register", email: string, password: string): Promise<void>;
   createRoom(): void;
@@ -22,6 +32,9 @@ interface GameStore {
   ready(): void;
   sendCommand(command: GameCommand): void;
   clearError(): void;
+  toggleHints(): void;
+  openHowTo(): void;
+  closeHowTo(): void;
 }
 
 let socket: GameSocket | null = null;
@@ -36,7 +49,7 @@ export const useStore = create<GameStore>((set, get) => {
         set({ roomCode: msg.code, roomPlayers: msg.players });
         break;
       case "matchStart":
-        set({ screen: "match", log: [] });
+        set({ screen: "match", log: [], howToOpen: !seenTutorial() });
         break;
       case "stateView":
         set({ view: msg.view as MatchView });
@@ -58,6 +71,8 @@ export const useStore = create<GameStore>((set, get) => {
     roomPlayers: [],
     log: [],
     busy: false,
+    hints: readHints(),
+    howToOpen: false,
 
     async authenticate(mode, email, password) {
       set({ busy: true, error: undefined });
@@ -88,6 +103,20 @@ export const useStore = create<GameStore>((set, get) => {
     },
     clearError() {
       set({ error: undefined });
+    },
+    toggleHints() {
+      set((s) => {
+        const hints = !s.hints;
+        if (typeof localStorage !== "undefined") localStorage.setItem(HINTS_KEY, hints ? "1" : "0");
+        return { hints };
+      });
+    },
+    openHowTo() {
+      set({ howToOpen: true });
+    },
+    closeHowTo() {
+      if (typeof localStorage !== "undefined") localStorage.setItem(TUTORIAL_KEY, "1");
+      set({ howToOpen: false });
     },
   };
 });

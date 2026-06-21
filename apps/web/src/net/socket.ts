@@ -1,4 +1,4 @@
-import type { ClientMessage, GameCommand, ServerMessage } from "@digimon/shared";
+import type { AnimeCommand, ClientMessage, ServerMessage } from "@digimon/shared";
 import { WS_URL } from "./config.js";
 
 /** Envelope tipado sobre o WebSocket do jogo. */
@@ -31,8 +31,8 @@ export class GameSocket {
   ready(): void {
     this.send({ type: "ready" });
   }
-  command(command: GameCommand): void {
-    this.send({ type: "command", command });
+  command(command: AnimeCommand): void {
+    this.send({ type: "animeCommand", command });
   }
   close(): void {
     this.ws.close();

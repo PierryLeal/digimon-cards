@@ -1,49 +1,39 @@
 /**
- * Monta a MatchView de um jogador a partir do estado autoritativo, escondendo a
- * informação oculta do oponente (mão, deck, security). Veja docs/PROTOCOL.md.
+ * Monta a AnimeMatchView de um jogador, escondendo a mão do oponente.
  */
 
-import type { MatchView, PlayerIndex, PlayerView, StackView } from "@digimon/shared";
-import type { CardStack, GameState, PlayerState } from "@digimon/engine";
+import type { AnimeMatchView, AnimePlayerView, AnimeStackView, PlayerIndex } from "@digimon/shared";
+import type { anime } from "@digimon/engine";
 
-function stackView(s: CardStack): StackView {
+function stackView(s: anime.AnimeStack): AnimeStackView {
   return {
     id: s.id,
-    cards: s.cards.map((c) => ({ id: c.id, number: c.number })),
-    suspended: s.suspended,
+    cards: s.cards.map((c) => ({ id: c.id, cardId: c.cardId })),
+    tired: s.tired,
+    playedThisTurn: s.playedThisTurn,
   };
 }
 
-function playerView(p: PlayerState, isSelf: boolean): PlayerView {
+function playerView(p: anime.AnimePlayer, isSelf: boolean): AnimePlayerView {
   return {
     id: p.id,
-    hand: isSelf ? p.hand.map((c) => ({ id: c.id, number: c.number })) : undefined,
+    hp: p.hp,
+    hand: isSelf ? p.hand.map((c) => ({ id: c.id, cardId: c.cardId })) : undefined,
     handCount: p.hand.length,
     deckCount: p.deck.length,
-    eggDeckCount: p.eggDeck.length,
-    // Security é oculta para ambos (face down): só a contagem.
-    securityCount: p.security.length,
-    trash: p.trash.map((c) => ({ id: c.id, number: c.number })),
-    breeding: p.breeding ? stackView(p.breeding) : null,
-    battle: p.battle.map(stackView),
+    trashCount: p.trash.length,
+    field: p.field.map(stackView),
   };
 }
 
-export function buildView(state: GameState, viewer: PlayerIndex): MatchView {
-  const pc = state.pendingChoice;
+export function buildAnimeView(state: anime.AnimeState, viewer: PlayerIndex): AnimeMatchView {
   return {
     matchId: state.matchId,
     you: viewer,
     activePlayer: state.activePlayer,
-    phase: state.phase,
     turn: state.turn,
-    memory: state.memory,
     status: state.status,
     winner: state.winner,
     players: [playerView(state.players[0], viewer === 0), playerView(state.players[1], viewer === 1)],
-    choice:
-      pc && pc.player === viewer
-        ? { choiceId: pc.choiceId, prompt: pc.prompt, options: pc.options, min: pc.min, max: pc.max }
-        : null,
   };
 }

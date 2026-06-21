@@ -1,6 +1,6 @@
 import { useStore } from "../store.js";
 
-/** Modal de tutorial. Abre automaticamente na 1ª partida e pelo botão "Como jogar". */
+/** Modal de tutorial (modo Anime). Abre na 1ª partida e pelo botão "Como jogar". */
 export function HowToPlay(): JSX.Element | null {
   const open = useStore((s) => s.howToOpen);
   const close = useStore((s) => s.closeHowTo);
@@ -13,50 +13,44 @@ export function HowToPlay(): JSX.Element | null {
 
         <h3>Objetivo</h3>
         <p>
-          Cada jogador tem 5 cartas de <strong>Security</strong> (viradas para baixo). Ataque
-          a Security do oponente para gastá-las; quando ele não tiver mais Security e levar
-          um ataque, <strong>você vence</strong>.
-        </p>
-
-        <h3>Memória (o coração do jogo)</h3>
-        <p>
-          O medidor vai de <strong>−10 a +10</strong>. Jogar e evoluir custam memória. Quando
-          ela cruza para o lado do oponente (fica negativa para você), seu turno acaba e o
-          oponente começa com aquela memória. É assim que o turno passa.
+          Cada jogador tem um <strong>Tamer com 5 de HP</strong>. Reduza o HP do Tamer inimigo
+          a <strong>0</strong> para vencer. Seus Digimon <strong>protegem</strong> o seu Tamer.
         </p>
 
         <h3>No seu turno</h3>
         <ol>
           <li>
-            <strong>Criação:</strong> "Eclodir ovo" → depois evolua o Digimon de baixo nível e
-            "Mover da criação" para a área de batalha.
+            <strong>Jogar:</strong> coloque um Digimon <em>rookie</em> da mão no campo (clique a
+            carta → <em>Jogar</em>). Ele não ataca no turno em que entra.
           </li>
           <li>
-            <strong>Jogar:</strong> clique uma carta da mão → <em>Jogar</em> (paga memória).
+            <strong>Evoluir:</strong> se você tem na mão a evolução da linha (ex.: Greymon para um
+            Agumon em campo), clique a carta → <em>Evoluir</em> → clique o Digimon que vai evoluir.
+            Ele fica mais forte (e ganha a base por baixo).
           </li>
           <li>
-            <strong>Evoluir:</strong> clique uma carta → <em>Evoluir</em> → clique o Digimon em
-            jogo que vai evoluir (compra 1 carta de bônus).
+            <strong>Atacar:</strong> clique seu Digimon ativo → clique um <em>Digimon inimigo</em>
+            (compara DP, o menor é destruído; empate destrói os dois) <em>ou</em> o <em>Tamer</em>
+            inimigo — só dá para atingir o Tamer se ele <strong>não tiver Digimon</strong> protegendo.
           </li>
           <li>
-            <strong>Atacar:</strong> clique seu Digimon <em>ativo</em> → clique a Security do
-            oponente ou um Digimon <em>suspenso</em> dele. Atacar suspende seu Digimon.
-          </li>
-          <li>
-            <strong>Passar turno</strong> quando quiser.
+            <strong>Passar turno</strong> quando quiser (você compra 1 carta no início de cada turno).
           </li>
         </ol>
 
-        <h3>Batalha</h3>
+        <h3>Atributos (vantagem)</h3>
         <p>
-          Compara-se o <strong>DP</strong>. Quem tem menos é deletado (empate deleta os dois).
-          Cartas de evolução embaixo da pilha podem dar bônus de DP e efeitos.
+          Triângulo: <strong>Vaccine ▸ Virus ▸ Data ▸ Vaccine</strong>. Se o seu Digimon tem
+          vantagem de atributo sobre o que está batalhando, ele ganha <strong>+2 DP</strong> na
+          luta — então nem sempre vence quem tem o maior DP base.
         </p>
 
-        <p className="muted">
-          Dica: deixe as <strong>Dicas</strong> ligadas (interruptor no topo) para orientações
-          durante a partida.
-        </p>
+        <h3>Dicas</h3>
+        <ul>
+          <li>Cada Digimon evolui <strong>1 vez por turno</strong> (um estágio de cada vez).</li>
+          <li>O <strong>DP</strong> aumenta ao evoluir (cada carta embaixo dá +1).</li>
+          <li>Mantenha as <strong>Dicas</strong> ligadas (interruptor no topo) para orientações.</li>
+        </ul>
 
         <button onClick={close}>Entendi, vamos jogar</button>
       </div>

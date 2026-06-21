@@ -41,7 +41,34 @@ export function computeDp(ctx: AnimeContext, stack: AnimeStack): number {
   return ctx.db.require(top.cardId).dp + (stack.cards.length - 1);
 }
 
-export function createAnimeMatch(seed: AnimeSeed): AnimeReduceResult {
+/** Triângulo de atributos: Vaccine ▸ Virus ▸ Data ▸ Vaccine. */
+const BEATS: Record<string, string> = { Vaccine: "Virus", Virus: "Data", Data: "Vaccine" };
+const ATTR_BONUS = 2;
+function hasAttrAdvantage(ctx: AnimeContext, a: AnimeStack, b: AnimeStack): boolean {
+  const aa = ctx.db.require(a.cards[0]!.cardId).attribute;
+  const ba = ctx.db.require(b.cards[0]!.cardId).attribute;
+  return !!aa && !!ba && BEATS[aa] === ba;
+}
+
+/** DP de batalha = DP efetivo + bônus de vantagem de atributo sobre o oponente. */
+function battleDp(ctx: AnimeContext, self: AnimeStack, foe: AnimeStack): number {
+  return computeDp(ctx, self) + (hasAttrAdvantage(ctx, self, foe) ? ATTR_BONUS : 0);
+}
+
+/** Garante ao menos 1 rookie na mão (abertura justa): troca por um rookie do deck. */
+function ensureRookieInHand(ctx: AnimeContext, p: AnimePlayer): void {
+  if (p.hand.some((c) => ctx.db.get(c.cardId)?.stage === "rookie")) return;
+  const idx = p.deck.findIndex((c) => ctx.db.get(c.cardId)?.stage === "rookie");
+  if (idx < 0) return;
+  const [rookie] = p.deck.splice(idx, 1);
+  const swapped = p.hand[0];
+  if (rookie && swapped) {
+    p.hand[0] = rookie;
+    p.deck.push(swapped);
+  }
+}
+
+export function createAnimeMatch(ctx: AnimeContext, seed: AnimeSeed): AnimeReduceResult {
   let counter = 0;
   const mkCards = (slugs: string[], owner: PlayerIndex): AnimeCardInstance[] =>
     slugs.map((cardId) => ({ id: `c${++counter}`, cardId, owner }));
@@ -71,6 +98,7 @@ export function createAnimeMatch(seed: AnimeSeed): AnimeReduceResult {
   for (const p of state.players) {
     p.deck = shuffle(p.deck, rng);
     p.hand = p.deck.splice(0, ANIME_RULES.STARTING_HAND);
+    ensureRookieInHand(ctx, p);
   }
   state.rngState = rng.getState();
 
@@ -123,7 +151,7 @@ function playDigimon(ctx: AnimeContext, state: AnimeState, cardId: string, event
   if (p.field.length >= ANIME_RULES.MAX_FIELD) throw new RuleError("field-full", "Campo cheio.");
 
   p.hand = p.hand.filter((c) => c.id !== cardId);
-  p.field.push({ id: card.id, cards: [card], tired: false, playedThisTurn: true });
+  p.field.push({ id: card.id, cards: [card], tired: false, playedThisTurn: true, digivolvedThisTurn: false });
   events.push({ type: "digimonPlayed", player: state.activePlayer, cardId: card.cardId });
 }
 
@@ -140,6 +168,9 @@ function digivolve(
   const target = p.field.find((s) => s.id === targetId);
   if (!target) throw new RuleError("target-not-found", "Digimon a evoluir não encontrado.");
 
+  if (target.digivolvedThisTurn) {
+    throw new RuleError("already-digivolved", "Este Digimon já evoluiu neste turno (1 por turno).");
+  }
   const baseDef = ctx.db.require(target.cards[0]!.cardId);
   const evoDef = ctx.db.require(source.cardId);
   if (!ctx.db.canDigivolve(baseDef, evoDef)) {
@@ -149,6 +180,7 @@ function digivolve(
   p.hand = p.hand.filter((c) => c.id !== sourceId);
   target.cards.unshift(source);
   target.playedThisTurn = false; // evoluir tira o enjoo
+  target.digivolvedThisTurn = true; // 1 digivolução por turno
   events.push({ type: "digivolved", player: state.activePlayer, from: baseDef.id, to: evoDef.id });
 }
 
@@ -183,8 +215,8 @@ function attack(
 
   const defender = opp.field.find((s) => s.id === target.stackId);
   if (!defender) throw new RuleError("defender-not-found", "Alvo não encontrado.");
-  const aDp = computeDp(ctx, attacker);
-  const dDp = computeDp(ctx, defender);
+  const aDp = battleDp(ctx, attacker, defender);
+  const dDp = battleDp(ctx, defender, attacker);
   if (aDp >= dDp) deleteStack(state, oppIdx, defender, events);
   if (dDp >= aDp) deleteStack(state, state.activePlayer, attacker, events);
 }
@@ -197,6 +229,7 @@ function endTurn(state: AnimeState, events: AnimeEvent[]): void {
   for (const s of p.field) {
     s.tired = false;
     s.playedThisTurn = false;
+    s.digivolvedThisTurn = false;
   }
   events.push({ type: "turnChanged", player: opp, turn: state.turn });
 

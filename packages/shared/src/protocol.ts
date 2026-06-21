@@ -9,6 +9,7 @@
 import type { CardNumber, Deck } from "./types.js";
 import type { PlayerIndex, Phase } from "./phases.js";
 import type { Zone } from "./zones.js";
+import type { AnimeCommand } from "./anime.js";
 
 /** Identificador opaco de uma instância de carta dentro de uma partida. */
 export type CardInstanceId = string;
@@ -40,6 +41,7 @@ export type ClientMessage =
   | { type: "selectDeck"; deck: Deck }
   | { type: "ready" }
   | { type: "command"; command: GameCommand }
+  | { type: "animeCommand"; command: AnimeCommand }
   | { type: "ping" };
 
 // ───────────────────────────── Eventos de jogo (Servidor → Cliente) ─────────────────────────────

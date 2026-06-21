@@ -3,7 +3,9 @@
  * Tamer, digivolução tendo a evolução na mão. Veja docs/RULES_ANIME.md.
  */
 
-import type { PlayerIndex } from "@digimon/shared";
+import type { AnimeAttackTarget, AnimeCommand, PlayerIndex } from "@digimon/shared";
+
+export type { AnimeAttackTarget, AnimeCommand };
 
 export interface AnimeCardInstance {
   id: string;
@@ -20,6 +22,8 @@ export interface AnimeStack {
   tired: boolean;
   /** Entrou em campo neste turno (enjoo: não ataca no turno em que foi jogado). */
   playedThisTurn: boolean;
+  /** Já evoluiu neste turno (1 digivolução por Digimon por turno). */
+  digivolvedThisTurn: boolean;
 }
 
 export interface AnimePlayer {
@@ -42,14 +46,6 @@ export interface AnimeState {
   rngState: number;
   nextId: number;
 }
-
-export type AnimeAttackTarget = { kind: "tamer" } | { kind: "digimon"; stackId: string };
-
-export type AnimeCommand =
-  | { type: "playDigimon"; cardId: string }
-  | { type: "digivolve"; sourceId: string; targetId: string }
-  | { type: "attack"; attackerId: string; target: AnimeAttackTarget }
-  | { type: "endTurn" };
 
 export type AnimeEvent =
   | { type: "matchStarted"; firstPlayer: PlayerIndex }

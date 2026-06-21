@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import type { CardDefinition, GameCommand, GameEvent, MatchView, ServerMessage } from "@digimon/shared";
-import { fetchCards, login, register } from "./net/api.js";
+import type { AnimeCommand, AnimeMatchView, ServerMessage } from "@digimon/shared";
+import { fetchCards, login, register, type CardInfo } from "./net/api.js";
 import { GameSocket } from "./net/socket.js";
 
 export type Screen = "auth" | "lobby" | "match";
@@ -15,14 +15,12 @@ const seenTutorial = (): boolean =>
 interface GameStore {
   screen: Screen;
   userId?: string;
-  cards: Record<string, CardDefinition>;
+  cards: Record<string, CardInfo>;
   roomCode?: string;
   roomPlayers: string[];
-  view?: MatchView;
-  log: GameEvent[];
+  view?: AnimeMatchView;
   error?: string;
   busy: boolean;
-  /** Preferências de UI. */
   hints: boolean;
   howToOpen: boolean;
 
@@ -30,7 +28,7 @@ interface GameStore {
   createRoom(): void;
   joinRoom(code: string): void;
   ready(): void;
-  sendCommand(command: GameCommand): void;
+  sendCommand(command: AnimeCommand): void;
   clearError(): void;
   toggleHints(): void;
   openHowTo(): void;
@@ -49,13 +47,10 @@ export const useStore = create<GameStore>((set, get) => {
         set({ roomCode: msg.code, roomPlayers: msg.players });
         break;
       case "matchStart":
-        set({ screen: "match", log: [], howToOpen: !seenTutorial() });
+        set({ screen: "match", howToOpen: !seenTutorial() });
         break;
       case "stateView":
-        set({ view: msg.view as MatchView });
-        break;
-      case "events":
-        set((s) => ({ log: [...s.log, ...msg.events].slice(-60) }));
+        set({ view: msg.view as AnimeMatchView });
         break;
       case "error":
         set({ error: `${msg.code}: ${msg.message}`, busy: false });
@@ -69,7 +64,6 @@ export const useStore = create<GameStore>((set, get) => {
     screen: "auth",
     cards: {},
     roomPlayers: [],
-    log: [],
     busy: false,
     hints: readHints(),
     howToOpen: false,
@@ -79,8 +73,8 @@ export const useStore = create<GameStore>((set, get) => {
       try {
         const result = await (mode === "register" ? register : login)(email, password);
         const cards = await fetchCards();
-        const index: Record<string, CardDefinition> = {};
-        for (const c of cards) index[c.number] = c;
+        const index: Record<string, CardInfo> = {};
+        for (const c of cards) index[c.id] = c;
         set({ cards: index });
         socket = new GameSocket(handleMessage, () => socket?.authenticate(result.token));
       } catch (err) {

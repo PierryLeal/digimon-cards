@@ -134,8 +134,10 @@ function toCard(api: ApiDigimon, c: Curated): DigiCard {
     attribute: api.attributes?.[0]?.attribute,
     types: (api.types ?? []).map((t) => t.type).filter(Boolean),
     dp: DP[c.stage],
-    evolvesFrom: (api.priorEvolutions ?? []).map((e) => slugify(e.digimon)),
-    evolvesInto: (api.nextEvolutions ?? []).map((e) => slugify(e.digimon)),
+    // Linhas estritas: preenchidas por vizinhança depois (não usar as listas do digi-api,
+    // que são permissivas demais — Agumon "evolui" em dezenas de coisas).
+    evolvesFrom: [],
+    evolvesInto: [],
     isX: /x-antibody|\(x\)/i.test(api.name),
     effectName: skill?.skill,
     effectText: skill?.description,
@@ -174,15 +176,22 @@ const OPTION_CARDS: DigiCard[] = [
 async function main(): Promise<void> {
   const cards: DigiCard[] = [];
   for (const line of LINES) {
+    const built: DigiCard[] = [];
     for (const c of line) {
       const api = await fetchDigimon(c.name);
       if (!api) {
         console.warn(`[digidex] não encontrado no digi-api: ${c.name} (pulando)`);
         continue;
       }
-      cards.push(toCard(api, c));
+      built.push(toCard(api, c));
       console.log(`[digidex] ${c.name} -> ${slugify(api.name)} (${c.stage}, DP ${DP[c.stage]})`);
     }
+    // Liga cada carta apenas ao vizinho da própria linha (digivolução estrita, 1 estágio).
+    built.forEach((card, i) => {
+      card.evolvesFrom = i > 0 ? [built[i - 1]!.id] : [];
+      card.evolvesInto = i < built.length - 1 ? [built[i + 1]!.id] : [];
+    });
+    cards.push(...built);
   }
   cards.push(...OPTION_CARDS);
 

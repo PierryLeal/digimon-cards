@@ -1,9 +1,23 @@
-import type { CardDefinition } from "@digimon/shared";
 import { API_URL } from "./config.js";
 
 export interface AuthResult {
   user: { id: string; email: string };
   token: string;
+}
+
+/** Carta da digidex (modo Anime), como servida por GET /cards. */
+export interface CardInfo {
+  id: string;
+  name: string;
+  kind: string;
+  stage?: string;
+  tier?: number;
+  dp: number;
+  attribute?: string;
+  types: string[];
+  effectName?: string;
+  effectText?: string;
+  image?: string;
 }
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
@@ -23,8 +37,8 @@ export const register = (email: string, password: string): Promise<AuthResult> =
 export const login = (email: string, password: string): Promise<AuthResult> =>
   postJson<AuthResult>("/auth/login", { email, password });
 
-export async function fetchCards(): Promise<CardDefinition[]> {
+export async function fetchCards(): Promise<CardInfo[]> {
   const res = await fetch(`${API_URL}/cards`);
   if (!res.ok) throw new Error("Falha ao carregar cartas.");
-  return (await res.json()) as CardDefinition[];
+  return (await res.json()) as CardInfo[];
 }

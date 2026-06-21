@@ -1,25 +1,19 @@
 /**
- * Servidor de jogo: HTTP (health + auth) + WebSocket autoritativo (salas + partida).
+ * Servidor de jogo (modo Anime): HTTP (health + auth + /cards) + WebSocket autoritativo.
  *
- * - HTTP: POST /auth/register, POST /auth/login, GET /health
- * - WS: protocolo de @digimon/shared (authenticate, createRoom, joinRoom, selectDeck,
- *   ready, command, ping). O servidor roda o engine e envia views filtradas.
+ * - HTTP: POST /auth/register, POST /auth/login, GET /health, GET /cards
+ * - WS: authenticate, createRoom, joinRoom, ready, animeCommand, ping.
+ *   O servidor roda o engine anime e envia views filtradas.
  */
 
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
-import type {
-  ClientMessage,
-  Deck,
-  GameEvent,
-  PlayerIndex,
-  ServerMessage,
-} from "@digimon/shared";
+import type { ClientMessage, PlayerIndex, ServerMessage } from "@digimon/shared";
 import { config } from "./config.js";
 import { AuthError, AuthService, type User } from "./auth.js";
 import { RoomError, RoomManager } from "./room.js";
 import type { GameRoom } from "./room.js";
-import { db, type DeckLists } from "./cards.js";
+import { db } from "./cards.js";
 
 interface Session {
   user: User | null;
@@ -31,12 +25,6 @@ function send(ws: WebSocket, message: ServerMessage): void {
   if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(message));
 }
 
-function expandDeck(deck: Deck): DeckLists {
-  const main = deck.main.flatMap((e) => Array.from({ length: e.count }, () => e.number));
-  const eggDeck = deck.eggs.flatMap((e) => Array.from({ length: e.count }, () => e.number));
-  return { deck: main, eggDeck };
-}
-
 export interface RunningServer {
   port: number;
   close(): Promise<void>;
@@ -45,7 +33,6 @@ export interface RunningServer {
 export function startServer(port = config.port): Promise<RunningServer> {
   const auth = new AuthService();
   const rooms = new RoomManager();
-  /** code → (seat → socket) para broadcast. */
   const connections = new Map<string, Map<PlayerIndex, WebSocket>>();
   const sessions = new Map<WebSocket, Session>();
 
@@ -62,18 +49,13 @@ export function startServer(port = config.port): Promise<RunningServer> {
   }
 
   function broadcastRoomState(room: GameRoom): void {
-    const map = connections.get(room.code);
-    if (!map) return;
-    for (const ws of map.values()) {
+    for (const ws of connections.get(room.code)?.values() ?? []) {
       send(ws, { type: "roomState", code: room.code, players: room.playerIds });
     }
   }
 
-  function broadcast(room: GameRoom, events: GameEvent[]): void {
-    const map = connections.get(room.code);
-    if (!map) return;
-    for (const [seat, ws] of map) {
-      if (events.length) send(ws, { type: "events", events });
+  function broadcastViews(room: GameRoom): void {
+    for (const [seat, ws] of connections.get(room.code) ?? []) {
       const view = room.viewFor(seat);
       if (view) send(ws, { type: "stateView", view });
     }
@@ -81,7 +63,6 @@ export function startServer(port = config.port): Promise<RunningServer> {
 
   wss.on("connection", (ws) => {
     sessions.set(ws, { user: null, room: null, seat: null });
-
     ws.on("message", (raw) => {
       let msg: ClientMessage;
       try {
@@ -98,7 +79,6 @@ export function startServer(port = config.port): Promise<RunningServer> {
         send(ws, { type: "error", code, message });
       }
     });
-
     ws.on("close", () => sessions.delete(ws));
   });
 
@@ -106,14 +86,12 @@ export function startServer(port = config.port): Promise<RunningServer> {
     const session = sessions.get(ws)!;
 
     if (msg.type === "ping") return send(ws, { type: "pong" });
-
     if (msg.type === "authenticate") {
       const user = auth.authenticate(msg.token);
       if (!user) return send(ws, { type: "error", code: "unauthorized", message: "Token inválido." });
       session.user = user;
       return send(ws, { type: "authenticated", userId: user.id });
     }
-
     if (!session.user) {
       return send(ws, { type: "error", code: "unauthorized", message: "Autentique-se primeiro." });
     }
@@ -133,16 +111,10 @@ export function startServer(port = config.port): Promise<RunningServer> {
         register(room, seat, ws);
         return broadcastRoomState(room);
       }
-      case "selectDeck": {
-        requireRoom(session).selectDeck(session.seat!, expandDeck(msg.deck));
-        return;
-      }
       case "ready": {
         const room = requireRoom(session);
-        const started = room.setReady(session.seat!);
-        if (started) {
-          const map = connections.get(room.code);
-          for (const [seat, sock] of map ?? []) {
+        if (room.setReady(session.seat!)) {
+          for (const [seat, sock] of connections.get(room.code) ?? []) {
             send(sock, { type: "matchStart", matchId: room.code, you: seat });
             const view = room.viewFor(seat);
             if (view) send(sock, { type: "stateView", view });
@@ -150,10 +122,10 @@ export function startServer(port = config.port): Promise<RunningServer> {
         }
         return;
       }
-      case "command": {
+      case "animeCommand": {
         const room = requireRoom(session);
-        const events = room.command(session.seat!, msg.command);
-        return broadcast(room, events);
+        room.command(session.seat!, msg.command);
+        return broadcastViews(room);
       }
       default:
         return send(ws, { type: "error", code: "unknown", message: "Mensagem não suportada." });
@@ -165,7 +137,7 @@ export function startServer(port = config.port): Promise<RunningServer> {
       const addr = http.address();
       const actual = typeof addr === "object" && addr ? addr.port : port;
       // eslint-disable-next-line no-console
-      console.log(`[server] ouvindo em http://localhost:${actual} (ws + /health + /auth)`);
+      console.log(`[server] ouvindo em http://localhost:${actual} (anime · ws + /health + /auth + /cards)`);
       resolve({
         port: actual,
         close: () =>
@@ -185,10 +157,8 @@ function requireRoom(session: Session): GameRoom {
   return session.room;
 }
 
-// ───────────────────────────── HTTP (health + auth) ─────────────────────────────
-
+// ── HTTP ──
 function handleHttp(auth: AuthService, req: IncomingMessage, res: ServerResponse): void {
-  // CORS (cliente web em outra origem durante o dev).
   res.setHeader("access-control-allow-origin", "*");
   res.setHeader("access-control-allow-headers", "content-type");
   res.setHeader("access-control-allow-methods", "GET, POST, OPTIONS");
@@ -239,7 +209,6 @@ function json(res: ServerResponse, status: number, body: unknown): void {
   res.end(JSON.stringify(body));
 }
 
-// Inicialização direta (não em testes).
 if (process.env.NODE_ENV !== "test") {
   void startServer();
 }

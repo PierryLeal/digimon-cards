@@ -11,7 +11,7 @@ function repeat(slug: string, n: number): string[] {
 }
 
 function newMatch(): AnimeState {
-  return createAnimeMatch({
+  return createAnimeMatch(ctx, {
     matchId: "m",
     seed: 7,
     firstPlayer: 0,
@@ -40,6 +40,7 @@ function fieldStack(
     cards: [{ id, cardId, owner }],
     tired: opts.tired ?? false,
     playedThisTurn: opts.playedThisTurn ?? false,
+    digivolvedThisTurn: false,
   });
   return id;
 }
@@ -134,5 +135,43 @@ describe("modo Anime — turnos", () => {
     expect(s.activePlayer).toBe(1);
     expect(s.turn).toBe(2);
     expect(s.players[1].hand).toHaveLength(6); // comprou no início do turno
+  });
+});
+
+describe("modo Anime — regras refinadas", () => {
+  it("abertura justa: sempre há ao menos 1 rookie na mão inicial", () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const s = createAnimeMatch(ctx, {
+        matchId: "m",
+        seed,
+        firstPlayer: 0,
+        players: [
+          { id: "a", deck: ["agumon", ...repeat("greymon", 29)] },
+          { id: "b", deck: ["agumon", ...repeat("greymon", 29)] },
+        ],
+      }).state;
+      const hasRookie = s.players[0].hand.some((c) => ctx.db.get(c.cardId)?.stage === "rookie");
+      expect(hasRookie).toBe(true);
+    }
+  });
+
+  it("só 1 digivolução por Digimon por turno", () => {
+    let s = newMatch();
+    const fs = fieldStack(s, 0, "agumon");
+    const gr = handCard(s, 0, "greymon");
+    s = reduce(ctx, s, { type: "digivolve", sourceId: gr, targetId: fs }, 0).state;
+    const mg = handCard(s, 0, "metalgreymon");
+    expect(() => reduce(ctx, s, { type: "digivolve", sourceId: mg, targetId: fs }, 0)).toThrow(
+      /já evoluiu|1 por turno/i,
+    );
+  });
+
+  it("triângulo de atributos: Data vence Vaccine de mesmo DP", () => {
+    let s = newMatch();
+    const doru = fieldStack(s, 0, "dorumon"); // Data, DP 3
+    const agu = fieldStack(s, 1, "agumon"); // Vaccine, DP 3
+    s = reduce(ctx, s, { type: "attack", attackerId: doru, target: { kind: "digimon", stackId: agu } }, 0).state;
+    expect(s.players[1].field).toHaveLength(0); // Agumon deletado pela vantagem
+    expect(s.players[0].field).toHaveLength(1); // Dorumon sobrevive
   });
 });

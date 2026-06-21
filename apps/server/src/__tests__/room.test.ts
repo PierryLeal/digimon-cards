@@ -7,9 +7,7 @@ describe("AuthService", () => {
     const auth = new AuthService();
     const { user, token } = auth.register("Ash@example.com", "pa55");
     expect(auth.authenticate(token)?.id).toBe(user.id);
-
-    const relog = auth.login("ash@example.com", "pa55");
-    expect(relog.user.id).toBe(user.id);
+    expect(auth.login("ash@example.com", "pa55").user.id).toBe(user.id);
   });
 
   it("rejeita senha errada e email duplicado", () => {
@@ -20,53 +18,40 @@ describe("AuthService", () => {
   });
 });
 
-describe("GameRoom + RoomManager", () => {
+describe("GameRoom (modo Anime)", () => {
   function startedRoom() {
     const rooms = new RoomManager();
     const { room } = rooms.create("alice");
     rooms.join(room.code, "bob");
     room.setReady(0);
-    const started = room.setReady(1);
-    expect(started).toBe(true);
+    expect(room.setReady(1)).toBe(true);
     return room;
   }
 
-  it("não permite um terceiro jogador na sala", () => {
+  it("não permite um terceiro jogador", () => {
     const rooms = new RoomManager();
     const { room } = rooms.create("alice");
     rooms.join(room.code, "bob");
     expect(() => room.join("carol")).toThrow(RoomError);
   });
 
-  it("a view esconde a informação oculta do oponente", () => {
-    const room = startedRoom();
-    const view = room.viewFor(0)!;
+  it("a view esconde a mão do oponente e mostra HP/campo", () => {
+    const view = startedRoom().viewFor(0)!;
     expect(view.you).toBe(0);
-    expect(view.players[0].hand).toBeDefined(); // minha mão é visível
-    expect(view.players[1].hand).toBeUndefined(); // a do oponente não
-    // Security nunca é exposta (só contagem); nem o deck.
-    expect(view.players[0].securityCount).toBe(5);
-    expect(view.players[1].securityCount).toBe(5);
-    expect(view.players[1].deckCount).toBeGreaterThan(0);
-    const oppKeys = Object.keys(view.players[1]);
-    expect(oppKeys).not.toContain("security"); // conteúdo da security nunca trafega
-    expect(oppKeys).not.toContain("deck");
+    expect(view.players[0].hand).toBeDefined();
+    expect(view.players[1].hand).toBeUndefined();
+    expect(view.players[0].hp).toBe(5);
+    expect(view.players[0].handCount).toBe(5);
+    expect(view.players[1].field).toEqual([]);
   });
 
-  it("processa mulligan e uma jogada, atualizando as views", () => {
+  it("passar o turno atualiza a view (vira a vez)", () => {
     const room = startedRoom();
-    room.command(0, { type: "mulligan", keep: true });
-    room.command(1, { type: "mulligan", keep: true });
-
-    const view = room.viewFor(0)!;
-    expect(view.status).toBe("playing");
-    expect(view.activePlayer).toBe(0);
-
-    const cardId = view.players[0].hand![0]!.id;
-    const events = room.command(0, { type: "playCard", cardId });
-    expect(events.length).toBeGreaterThan(0);
-
-    // O oponente vê o estado atualizado, mas a mão dele continua oculta para mim.
-    expect(room.viewFor(1)!.players[0].hand).toBeUndefined();
+    room.command(0, { type: "endTurn" });
+    const view = room.viewFor(1)!;
+    expect(view.activePlayer).toBe(1);
+    expect(view.turn).toBe(2);
+    // a mão do oponente (jogador 0) continua oculta para o jogador 1
+    expect(view.players[0].hand).toBeUndefined();
   });
 });

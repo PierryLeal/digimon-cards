@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { cardImageUrl } from "../data/cardImage.js";
 
 export interface CardProps {
-  number?: string;
+  image?: string;
   faceDown?: boolean;
   name?: string;
   dp?: number;
@@ -29,22 +28,22 @@ export function Card(props: CardProps): JSX.Element {
     .filter(Boolean)
     .join(" ");
 
-  if (props.faceDown || !props.number) {
+  if (props.faceDown || !props.image) {
     return <div className={`${cls} back`} onClick={props.onClick} aria-label="carta virada" />;
   }
 
   return (
-    <div className={cls} onClick={props.onClick} title={props.name ?? props.number}>
+    <div className={cls} onClick={props.onClick} title={props.name}>
       {!imgError ? (
         <img
-          src={cardImageUrl(props.number)}
-          alt={props.name ?? props.number}
+          src={props.image}
+          alt={props.name ?? ""}
           draggable={false}
           onError={() => setImgError(true)}
         />
       ) : (
         <div className="gcard-fallback">
-          <span className="fb-name">{props.name ?? props.number}</span>
+          <span className="fb-name">{props.name}</span>
           {typeof props.dp === "number" && <span className="fb-dp">{props.dp} DP</span>}
         </div>
       )}

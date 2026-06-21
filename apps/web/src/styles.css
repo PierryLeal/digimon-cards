@@ -453,6 +453,52 @@ input {
   align-items: center;
 }
 
+.tamer-row {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+.tamer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.4rem 0.9rem;
+}
+.tamer.mine {
+  border-color: rgba(94, 224, 138, 0.4);
+}
+.tamer.targetable {
+  border-color: var(--bad);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.4);
+  cursor: pointer;
+}
+.tamer-label {
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+.tamer-hp {
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  color: var(--bad);
+}
+.tamer-hp em {
+  font-size: 0.75rem;
+  color: #e6e9f0;
+  opacity: 0.8;
+  margin-left: 0.3rem;
+}
+.empty {
+  opacity: 0.4;
+  font-size: 0.85rem;
+  align-self: center;
+}
+
 .log {
   background: var(--panel);
   border: 1px solid var(--line);

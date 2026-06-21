@@ -11,3 +11,6 @@ export { getEffect, registeredEffects } from "./effects/registry.js";
 export { computeDp } from "./effects/triggers.js";
 export type { EffectApi, EffectHandlers, DpQuery } from "./effects/types.js";
 import "./effects/register.js";
+
+// Modo Anime (homebrew) — motor isolado, sob o namespace `anime`.
+export * as anime from "./anime/index.js";

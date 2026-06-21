@@ -15,7 +15,8 @@
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
-    "import:cards": "pnpm --filter @digimon/card-importer start"
+    "import:cards": "pnpm --filter @digimon/card-importer start",
+    "import:digidex": "pnpm --filter @digimon/card-importer digidex"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",

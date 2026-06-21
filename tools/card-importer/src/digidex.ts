@@ -89,6 +89,22 @@ const DP: Record<Stage, number> = {
   mega: 9,
   armor: 5,
 };
+const HP: Record<Stage, number> = {
+  "in-training": 2,
+  rookie: 3,
+  champion: 6,
+  ultimate: 9,
+  mega: 12,
+  armor: 6,
+};
+const COST: Record<Stage, number> = {
+  "in-training": 0,
+  rookie: 1,
+  champion: 2,
+  ultimate: 3,
+  mega: 4,
+  armor: 2,
+};
 
 /** Slug ASCII a partir do nome (os nomes do digi-api já são ASCII). */
 function slugify(name: string): string {
@@ -125,6 +141,11 @@ async function fetchDigimon(name: string): Promise<ApiDigimon | null> {
 
 function toCard(api: ApiDigimon, c: Curated): DigiCard {
   const skill = api.skills?.[0];
+  const skills = (api.skills ?? []).filter((s) => s.skill).slice(0, 2);
+  const attacks =
+    skills.length > 0
+      ? skills.map((sk, i) => ({ name: sk.skill, power: DP[c.stage] + (i === 0 ? 0 : 1) }))
+      : [{ name: "Ataque", power: DP[c.stage] }];
   return {
     id: slugify(api.name),
     name: api.name,
@@ -134,6 +155,9 @@ function toCard(api: ApiDigimon, c: Curated): DigiCard {
     attribute: api.attributes?.[0]?.attribute,
     types: (api.types ?? []).map((t) => t.type).filter(Boolean),
     dp: DP[c.stage],
+    hp: HP[c.stage],
+    cost: COST[c.stage],
+    attacks,
     // Linhas estritas: preenchidas por vizinhança depois (não usar as listas do digi-api,
     // que são permissivas demais — Agumon "evolui" em dezenas de coisas).
     evolvesFrom: [],
@@ -145,6 +169,31 @@ function toCard(api: ApiDigimon, c: Curated): DigiCard {
   };
 }
 
+/** Habilidades/efeitos autorais para cartas ícones (efeitos resolvidos pelo motor). */
+function applyAuthored(card: DigiCard): void {
+  switch (card.id) {
+    case "metalgreymon":
+    case "garudamon":
+      if (card.attacks[0]) card.attacks[0].effect = "pierce"; // também causa 1 ao Tamer
+      break;
+    case "wargreymon":
+      card.ability = { trigger: "onDigivolve", effect: "draw1", text: "Ao evoluir: compre 1 carta." };
+      break;
+    case "angemon":
+      card.ability = { trigger: "onPlay", effect: "heal1", text: "Ao entrar: recupere 1 HP do Tamer." };
+      break;
+    case "seraphimon":
+      card.ability = { trigger: "onDigivolve", effect: "heal2", text: "Ao evoluir: recupere 2 HP do Tamer." };
+      break;
+    case "rosemon":
+    case "lilimon":
+      card.ability = { trigger: "onPlay", effect: "draw1", text: "Ao entrar: compre 1 carta." };
+      break;
+    default:
+      break;
+  }
+}
+
 /** Cartas de efeito feitas à mão (não vêm do digi-api). */
 const OPTION_CARDS: DigiCard[] = [
   {
@@ -153,6 +202,9 @@ const OPTION_CARDS: DigiCard[] = [
     kind: "x-antibody",
     types: [],
     dp: 0,
+    hp: 0,
+    cost: 1,
+    attacks: [],
     evolvesFrom: [],
     evolvesInto: [],
     isX: false,
@@ -165,6 +217,9 @@ const OPTION_CARDS: DigiCard[] = [
     kind: "option",
     types: [],
     dp: 0,
+    hp: 0,
+    cost: 1,
+    attacks: [],
     evolvesFrom: [],
     evolvesInto: [],
     isX: false,
@@ -191,6 +246,7 @@ async function main(): Promise<void> {
       card.evolvesFrom = i > 0 ? [built[i - 1]!.id] : [];
       card.evolvesInto = i < built.length - 1 ? [built[i + 1]!.id] : [];
     });
+    built.forEach(applyAuthored);
     cards.push(...built);
   }
   cards.push(...OPTION_CARDS);

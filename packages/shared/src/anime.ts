@@ -11,7 +11,7 @@ export type AnimeAttackTarget = { kind: "tamer" } | { kind: "digimon"; stackId: 
 export type AnimeCommand =
   | { type: "playDigimon"; cardId: string }
   | { type: "digivolve"; sourceId: string; targetId: string }
-  | { type: "attack"; attackerId: string; target: AnimeAttackTarget }
+  | { type: "attack"; attackerId: string; target: AnimeAttackTarget; attackIndex?: number }
   | { type: "endTurn" };
 
 // ── Visão filtrada (servidor → cliente) ──
@@ -26,11 +26,15 @@ export interface AnimeStackView {
   cards: AnimeCardView[];
   tired: boolean;
   playedThisTurn: boolean;
+  /** Dano acumulado (HP da carta vem da digidex). */
+  damage: number;
 }
 
 export interface AnimePlayerView {
   id: string;
   hp: number;
+  digiSoul: number;
+  digiSoulMax: number;
   /** Mão completa apenas para o próprio jogador. */
   hand?: AnimeCardView[];
   handCount: number;

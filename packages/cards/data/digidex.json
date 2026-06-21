@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-21T21:06:13.042Z",
+  "generatedAt": "2026-06-21T21:16:02.090Z",
   "cards": [
     {
       "id": "agumon",
@@ -12,6 +12,18 @@
         "Reptile"
       ],
       "dp": 3,
+      "hp": 3,
+      "cost": 1,
+      "attacks": [
+        {
+          "name": "Baby Flame",
+          "power": 3
+        },
+        {
+          "name": "Spitfire",
+          "power": 4
+        }
+      ],
       "evolvesFrom": [],
       "evolvesInto": [
         "greymon"
@@ -32,6 +44,18 @@
         "Dinosaur"
       ],
       "dp": 5,
+      "hp": 6,
+      "cost": 2,
+      "attacks": [
+        {
+          "name": "Mega Flame",
+          "power": 5
+        },
+        {
+          "name": "Great Antler",
+          "power": 6
+        }
+      ],
       "evolvesFrom": [
         "agumon"
       ],
@@ -54,6 +78,19 @@
         "Cyborg"
       ],
       "dp": 7,
+      "hp": 9,
+      "cost": 3,
+      "attacks": [
+        {
+          "name": "Giga Destroyer",
+          "power": 7,
+          "effect": "pierce"
+        },
+        {
+          "name": "Trident Arm",
+          "power": 8
+        }
+      ],
       "evolvesFrom": [
         "greymon"
       ],
@@ -77,6 +114,23 @@
         "Dragon Man"
       ],
       "dp": 9,
+      "hp": 12,
+      "cost": 4,
+      "attacks": [
+        {
+          "name": "Gaia Force",
+          "power": 9
+        },
+        {
+          "name": "Great Tornado",
+          "power": 10
+        }
+      ],
+      "ability": {
+        "trigger": "onDigivolve",
+        "effect": "draw1",
+        "text": "Ao evoluir: compre 1 carta."
+      },
       "evolvesFrom": [
         "metalgreymon"
       ],
@@ -98,6 +152,18 @@
         "Beast"
       ],
       "dp": 3,
+      "hp": 3,
+      "cost": 1,
+      "attacks": [
+        {
+          "name": "Petit Fire",
+          "power": 3
+        },
+        {
+          "name": "Little Horn",
+          "power": 4
+        }
+      ],
       "evolvesFrom": [],
       "evolvesInto": [
         "garurumon"
@@ -118,6 +184,18 @@
         "Beast"
       ],
       "dp": 5,
+      "hp": 6,
+      "cost": 2,
+      "attacks": [
+        {
+          "name": "Foxfire",
+          "power": 5
+        },
+        {
+          "name": "Tai Atari",
+          "power": 6
+        }
+      ],
       "evolvesFrom": [
         "gabumon"
       ],
@@ -140,6 +218,18 @@
         "Beast Man"
       ],
       "dp": 7,
+      "hp": 9,
+      "cost": 3,
+      "attacks": [
+        {
+          "name": "Kaiser Nail",
+          "power": 7
+        },
+        {
+          "name": "Baldy Blow",
+          "power": 8
+        }
+      ],
       "evolvesFrom": [
         "garurumon"
       ],
@@ -162,6 +252,18 @@
         "Cyborg"
       ],
       "dp": 9,
+      "hp": 12,
+      "cost": 4,
+      "attacks": [
+        {
+          "name": "Cocytus Breath",
+          "power": 9
+        },
+        {
+          "name": "Grace Cross Freezer",
+          "power": 10
+        }
+      ],
       "evolvesFrom": [
         "weregarurumon"
       ],
@@ -182,6 +284,18 @@
         "Mammal"
       ],
       "dp": 3,
+      "hp": 3,
+      "cost": 1,
+      "attacks": [
+        {
+          "name": "Air Shot",
+          "power": 3
+        },
+        {
+          "name": "Kūchū Air Shot",
+          "power": 4
+        }
+      ],
       "evolvesFrom": [],
       "evolvesInto": [
         "angemon"
@@ -202,6 +316,23 @@
         "Angel"
       ],
       "dp": 5,
+      "hp": 6,
+      "cost": 2,
+      "attacks": [
+        {
+          "name": "Heaven's Knuckle",
+          "power": 5
+        },
+        {
+          "name": "Holy Rod",
+          "power": 6
+        }
+      ],
+      "ability": {
+        "trigger": "onPlay",
+        "effect": "heal1",
+        "text": "Ao entrar: recupere 1 HP do Tamer."
+      },
       "evolvesFrom": [
         "patamon"
       ],
@@ -224,6 +355,18 @@
         "Archangel"
       ],
       "dp": 7,
+      "hp": 9,
+      "cost": 3,
+      "attacks": [
+        {
+          "name": "Heaven's Gate",
+          "power": 7
+        },
+        {
+          "name": "Excalibur",
+          "power": 8
+        }
+      ],
       "evolvesFrom": [
         "angemon"
       ],
@@ -246,6 +389,23 @@
         "Seraph"
       ],
       "dp": 9,
+      "hp": 12,
+      "cost": 4,
+      "attacks": [
+        {
+          "name": "Seven Heavens",
+          "power": 9
+        },
+        {
+          "name": "Testament",
+          "power": 10
+        }
+      ],
+      "ability": {
+        "trigger": "onDigivolve",
+        "effect": "heal2",
+        "text": "Ao evoluir: recupere 2 HP do Tamer."
+      },
       "evolvesFrom": [
         "holyangemon"
       ],
@@ -266,6 +426,18 @@
         "Chick"
       ],
       "dp": 3,
+      "hp": 3,
+      "cost": 1,
+      "attacks": [
+        {
+          "name": "Magical Fire",
+          "power": 3
+        },
+        {
+          "name": "Piyorin Attack",
+          "power": 4
+        }
+      ],
       "evolvesFrom": [],
       "evolvesInto": [
         "birdramon"
@@ -286,6 +458,18 @@
         "Giant Bird"
       ],
       "dp": 5,
+      "hp": 6,
+      "cost": 2,
+      "attacks": [
+        {
+          "name": "Meteor Wing",
+          "power": 5
+        },
+        {
+          "name": "Fire Flap",
+          "power": 6
+        }
+      ],
       "evolvesFrom": [
         "piyomon"
       ],
@@ -309,6 +493,19 @@
         "Giant Bird"
       ],
       "dp": 7,
+      "hp": 9,
+      "cost": 3,
+      "attacks": [
+        {
+          "name": "Shadow Wing",
+          "power": 7,
+          "effect": "pierce"
+        },
+        {
+          "name": "Eagle Claw",
+          "power": 8
+        }
+      ],
       "evolvesFrom": [
         "birdramon"
       ],
@@ -331,6 +528,18 @@
         "Holy Beast"
       ],
       "dp": 9,
+      "hp": 12,
+      "cost": 4,
+      "attacks": [
+        {
+          "name": "Starlight Explosion",
+          "power": 9
+        },
+        {
+          "name": "Crimson Flare",
+          "power": 10
+        }
+      ],
       "evolvesFrom": [
         "garudamon"
       ],
@@ -351,6 +560,18 @@
         "Plant"
       ],
       "dp": 3,
+      "hp": 3,
+      "cost": 1,
+      "attacks": [
+        {
+          "name": "Poison Ivy",
+          "power": 3
+        },
+        {
+          "name": "Plant Shock",
+          "power": 4
+        }
+      ],
       "evolvesFrom": [],
       "evolvesInto": [
         "togemon"
@@ -371,6 +592,18 @@
         "Plant"
       ],
       "dp": 5,
+      "hp": 6,
+      "cost": 2,
+      "attacks": [
+        {
+          "name": "Chikuchiku Bang Bang",
+          "power": 5
+        },
+        {
+          "name": "Mach Jab",
+          "power": 6
+        }
+      ],
       "evolvesFrom": [
         "palmon"
       ],
@@ -393,6 +626,23 @@
         "Fairy"
       ],
       "dp": 7,
+      "hp": 9,
+      "cost": 3,
+      "attacks": [
+        {
+          "name": "Flow' Cannon[10]",
+          "power": 7
+        },
+        {
+          "name": "Temptation",
+          "power": 8
+        }
+      ],
+      "ability": {
+        "trigger": "onPlay",
+        "effect": "draw1",
+        "text": "Ao entrar: compre 1 carta."
+      },
       "evolvesFrom": [
         "togemon"
       ],
@@ -415,6 +665,23 @@
         "Fairy"
       ],
       "dp": 9,
+      "hp": 12,
+      "cost": 4,
+      "attacks": [
+        {
+          "name": "Thorn Whip",
+          "power": 9
+        },
+        {
+          "name": "Roses Rapier",
+          "power": 10
+        }
+      ],
+      "ability": {
+        "trigger": "onPlay",
+        "effect": "draw1",
+        "text": "Ao entrar: compre 1 carta."
+      },
       "evolvesFrom": [
         "lilimon"
       ],
@@ -435,6 +702,18 @@
         "Marine Beast"
       ],
       "dp": 3,
+      "hp": 3,
+      "cost": 1,
+      "attacks": [
+        {
+          "name": "Marching Fishes",
+          "power": 3
+        },
+        {
+          "name": "Surudoi Tsume",
+          "power": 4
+        }
+      ],
       "evolvesFrom": [],
       "evolvesInto": [
         "ikkakumon"
@@ -455,6 +734,18 @@
         "Marine Beast"
       ],
       "dp": 5,
+      "hp": 6,
+      "cost": 2,
+      "attacks": [
+        {
+          "name": "Harpoon Vulcan",
+          "power": 5
+        },
+        {
+          "name": "Heat Top",
+          "power": 6
+        }
+      ],
       "evolvesFrom": [
         "gomamon"
       ],
@@ -477,6 +768,18 @@
         "Marine Beast"
       ],
       "dp": 7,
+      "hp": 9,
+      "cost": 3,
+      "attacks": [
+        {
+          "name": "Hammer Spark",
+          "power": 7
+        },
+        {
+          "name": "Horn & Tusk",
+          "power": 8
+        }
+      ],
       "evolvesFrom": [
         "ikkakumon"
       ],
@@ -499,6 +802,18 @@
         "Beast Man"
       ],
       "dp": 9,
+      "hp": 12,
+      "cost": 4,
+      "attacks": [
+        {
+          "name": "Arctic Blizzard",
+          "power": 9
+        },
+        {
+          "name": "Viking Axe",
+          "power": 10
+        }
+      ],
       "evolvesFrom": [
         "zudomon"
       ],
@@ -519,6 +834,18 @@
         "Insect"
       ],
       "dp": 3,
+      "hp": 3,
+      "cost": 1,
+      "attacks": [
+        {
+          "name": "Petit Thunder",
+          "power": 3
+        },
+        {
+          "name": "Twice Arm",
+          "power": 4
+        }
+      ],
       "evolvesFrom": [],
       "evolvesInto": [
         "kabuterimon"
@@ -539,6 +866,18 @@
         "Insect"
       ],
       "dp": 5,
+      "hp": 6,
+      "cost": 2,
+      "attacks": [
+        {
+          "name": "Mega Blaster",
+          "power": 5
+        },
+        {
+          "name": "Beet Horn",
+          "power": 6
+        }
+      ],
       "evolvesFrom": [
         "tentomon"
       ],
@@ -559,6 +898,18 @@
         "Beast"
       ],
       "dp": 3,
+      "hp": 3,
+      "cost": 1,
+      "attacks": [
+        {
+          "name": "Metal Cannon",
+          "power": 3
+        },
+        {
+          "name": "Dash Metal",
+          "power": 4
+        }
+      ],
       "evolvesFrom": [],
       "evolvesInto": [
         "dorugamon"
@@ -579,6 +930,18 @@
         "Beast Dragon"
       ],
       "dp": 5,
+      "hp": 6,
+      "cost": 2,
+      "attacks": [
+        {
+          "name": "Power Metal",
+          "power": 5
+        },
+        {
+          "name": "Cannonball",
+          "power": 6
+        }
+      ],
       "evolvesFrom": [
         "dorumon"
       ],
@@ -601,6 +964,18 @@
         "Beast Dragon"
       ],
       "dp": 7,
+      "hp": 9,
+      "cost": 3,
+      "attacks": [
+        {
+          "name": "Metal Meteor",
+          "power": 7
+        },
+        {
+          "name": "Bloody Tower",
+          "power": 8
+        }
+      ],
       "evolvesFrom": [
         "dorugamon"
       ],
@@ -623,6 +998,18 @@
         "Beast Dragon"
       ],
       "dp": 9,
+      "hp": 12,
+      "cost": 4,
+      "attacks": [
+        {
+          "name": "Brave Metal",
+          "power": 9
+        },
+        {
+          "name": "DORU Din",
+          "power": 10
+        }
+      ],
       "evolvesFrom": [
         "doruguremon"
       ],
@@ -638,6 +1025,9 @@
       "kind": "x-antibody",
       "types": [],
       "dp": 0,
+      "hp": 0,
+      "cost": 0,
+      "attacks": [],
       "evolvesFrom": [],
       "evolvesInto": [],
       "isX": false,
@@ -650,6 +1040,9 @@
       "kind": "option",
       "types": [],
       "dp": 0,
+      "hp": 0,
+      "cost": 0,
+      "attacks": [],
       "evolvesFrom": [],
       "evolvesInto": [],
       "isX": false,

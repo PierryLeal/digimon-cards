@@ -22,6 +22,24 @@ export type Stage = z.infer<typeof stageSchema>;
 export const digiKindSchema = z.enum(["digimon", "x-antibody", "fusion", "option"]);
 export type DigiKind = z.infer<typeof digiKindSchema>;
 
+/** Um ataque do Digimon (nome + poder + efeito opcional). */
+export const attackSchema = z.object({
+  name: z.string(),
+  power: z.number().int().nonnegative(),
+  /** Id do efeito do ataque (resolvido pelo motor), ex.: "pierce". */
+  effect: z.string().optional(),
+});
+export type Attack = z.infer<typeof attackSchema>;
+
+/** Habilidade disparada por um gatilho. */
+export const abilitySchema = z.object({
+  trigger: z.enum(["onPlay", "onDigivolve", "onAttack", "onDestroyed"]),
+  /** Id do efeito (resolvido pelo motor), ex.: "draw1". */
+  effect: z.string(),
+  text: z.string(),
+});
+export type Ability = z.infer<typeof abilitySchema>;
+
 export const digiCardSchema = z.object({
   /** Slug único, ex.: "greymon". */
   id: z.string().min(1),
@@ -32,8 +50,16 @@ export const digiCardSchema = z.object({
   tier: z.number().int().optional(),
   attribute: z.string().optional(),
   types: z.array(z.string()).default([]),
-  /** Poder de batalha. */
+  /** Poder de batalha (ataque base). */
   dp: z.number().int().nonnegative().default(0),
+  /** Pontos de vida do Digimon (dano acumula até deletar). */
+  hp: z.number().int().nonnegative().default(0),
+  /** Custo em DigiSoul para jogar/evoluir. */
+  cost: z.number().int().nonnegative().default(0),
+  /** Ataques (1–2). O primeiro é o padrão. */
+  attacks: z.array(attackSchema).default([]),
+  /** Habilidade especial (gatilho), se houver. */
+  ability: abilitySchema.optional(),
   /** Slugs dos Digimon dos quais esta carta é evolução. */
   evolvesFrom: z.array(z.string()).default([]),
   /** Slugs das evoluções desta carta. */

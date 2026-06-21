@@ -24,6 +24,8 @@ export interface AnimeStack {
   playedThisTurn: boolean;
   /** Já evoluiu neste turno (1 digivolução por Digimon por turno). */
   digivolvedThisTurn: boolean;
+  /** Dano acumulado (deletado quando atinge o HP da carta). */
+  damage: number;
 }
 
 export interface AnimePlayer {
@@ -33,6 +35,10 @@ export interface AnimePlayer {
   field: AnimeStack[];
   trash: AnimeCardInstance[];
   hp: number;
+  /** DigiSoul disponível neste turno. */
+  digiSoul: number;
+  /** Teto de DigiSoul (cresce 1 por turno). */
+  digiSoulMax: number;
 }
 
 export interface AnimeState {
@@ -62,6 +68,8 @@ export const ANIME_RULES = {
   STARTING_HAND: 5,
   TAMER_HP: 5,
   MAX_FIELD: 5,
+  /** Teto do DigiSoul (cresce 1 por turno até aqui). */
+  DIGISOUL_MAX: 8,
 } as const;
 
 export function opponentOf(p: PlayerIndex): PlayerIndex {

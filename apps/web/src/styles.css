@@ -190,7 +190,7 @@ input {
 }
 .dp-badge {
   position: absolute;
-  bottom: 2px;
+  bottom: 6px;
   right: 2px;
   background: rgba(0, 0, 0, 0.72);
   color: var(--warn);
@@ -198,6 +198,32 @@ input {
   font-weight: 700;
   padding: 1px 4px;
   border-radius: 4px;
+}
+.cost-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(20, 30, 80, 0.85);
+  color: #9ec5ff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+.hp-bar {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  height: 4px;
+  background: rgba(255, 107, 107, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.hp-fill {
+  display: block;
+  height: 100%;
+  background: var(--good);
 }
 .depth-badge {
   position: absolute;
@@ -492,6 +518,25 @@ input {
   color: #e6e9f0;
   opacity: 0.8;
   margin-left: 0.3rem;
+}
+.tamer-soul {
+  font-size: 0.8rem;
+  color: #9ec5ff;
+}
+.attack-picker {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.attack-picker button.active {
+  border-color: var(--accent);
+  background: rgba(78, 168, 255, 0.18);
+}
+.ability {
+  font-size: 0.72rem;
+  color: var(--accent-2);
+  max-width: 180px;
 }
 .empty {
   opacity: 0.4;

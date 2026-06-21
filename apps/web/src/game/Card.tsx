@@ -5,6 +5,9 @@ export interface CardProps {
   faceDown?: boolean;
   name?: string;
   dp?: number;
+  cost?: number;
+  maxHp?: number;
+  damage?: number;
   suspended?: boolean;
   depth?: number;
   selected?: boolean;
@@ -47,9 +50,18 @@ export function Card(props: CardProps): JSX.Element {
           {typeof props.dp === "number" && <span className="fb-dp">{props.dp} DP</span>}
         </div>
       )}
-      {typeof props.dp === "number" && <span className="dp-badge">{props.dp}</span>}
+      {typeof props.dp === "number" && <span className="dp-badge">⚔{props.dp}</span>}
+      {typeof props.cost === "number" && <span className="cost-badge">⚡{props.cost}</span>}
       {props.depth && props.depth > 1 ? <span className="depth-badge">⛁{props.depth}</span> : null}
       {props.suspended && <span className="susp-badge">⟳</span>}
+      {typeof props.maxHp === "number" && props.maxHp > 0 && (
+        <span className="hp-bar" title={`${props.maxHp - (props.damage ?? 0)}/${props.maxHp} HP`}>
+          <span
+            className="hp-fill"
+            style={{ width: `${Math.max(0, ((props.maxHp - (props.damage ?? 0)) / props.maxHp) * 100)}%` }}
+          />
+        </span>
+      )}
     </div>
   );
 }

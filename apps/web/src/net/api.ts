@@ -5,6 +5,12 @@ export interface AuthResult {
   token: string;
 }
 
+export interface AttackInfo {
+  name: string;
+  power: number;
+  effect?: string;
+}
+
 /** Carta da digidex (modo Anime), como servida por GET /cards. */
 export interface CardInfo {
   id: string;
@@ -13,6 +19,10 @@ export interface CardInfo {
   stage?: string;
   tier?: number;
   dp: number;
+  hp: number;
+  cost: number;
+  attacks: AttackInfo[];
+  ability?: { trigger: string; effect: string; text: string };
   attribute?: string;
   types: string[];
   effectName?: string;

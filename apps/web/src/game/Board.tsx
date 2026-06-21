@@ -7,7 +7,7 @@ import { HowToPlay } from "./HowToPlay.js";
 type Mode =
   | { kind: "idle" }
   | { kind: "digivolve"; sourceId: string }
-  | { kind: "attack"; attackerId: string };
+  | { kind: "attack"; attackerId: string; attackIndex: number };
 
 export function Board({ view }: { view: AnimeMatchView }): JSX.Element {
   const { cards, sendCommand, error, hints, toggleHints, openHowTo } = useStore();
@@ -17,25 +17,31 @@ export function Board({ view }: { view: AnimeMatchView }): JSX.Element {
   const me = view.you;
   const opp = (1 - me) as PlayerIndex;
   const myTurn = view.activePlayer === me && view.status === "playing";
+  const mine = view.players[me];
+  const them = view.players[opp];
 
-  const nameOf = (cardId: string): string => cards[cardId]?.name ?? cardId;
-  const imageOf = (cardId: string): string | undefined => cards[cardId]?.image;
-  const stageOf = (cardId: string): string | undefined => cards[cardId]?.stage;
-  const stackDp = (s: AnimeStackView): number => (cards[s.cards[0]!.cardId]?.dp ?? 0) + (s.cards.length - 1);
+  const card = (cardId: string) => cards[cardId];
+  const nameOf = (cardId: string): string => card(cardId)?.name ?? cardId;
+  const imageOf = (cardId: string): string | undefined => card(cardId)?.image;
+  const hpOf = (cardId: string): number => card(cardId)?.hp ?? 0;
+  const stackPower = (s: AnimeStackView): number => (card(s.cards[0]!.cardId)?.dp ?? 0) + (s.cards.length - 1);
   const canAttackWith = (s: AnimeStackView): boolean => myTurn && !s.tired && !s.playedThisTurn;
 
   const reset = (): void => {
     setSelectedHand(null);
     setMode({ kind: "idle" });
   };
-  const cmd = (c: Parameters<typeof sendCommand>[0]): void => {
+  const run = (c: Parameters<typeof sendCommand>[0]): void => {
     sendCommand(c);
     reset();
   };
-  const attack = (attackerId: string, target: AnimeAttackTarget): void => cmd({ type: "attack", attackerId, target });
+  const attack = (target: AnimeAttackTarget): void => {
+    if (mode.kind !== "attack") return;
+    run({ type: "attack", attackerId: mode.attackerId, target, attackIndex: mode.attackIndex });
+  };
 
-  const them = view.players[opp];
-  const mine = view.players[me];
+  const attacker = mode.kind === "attack" ? mine.field.find((s) => s.id === mode.attackerId) : undefined;
+  const attackerAttacks = attacker ? (card(attacker.cards[0]!.cardId)?.attacks ?? []) : [];
 
   return (
     <div className="board">
@@ -58,8 +64,9 @@ export function Board({ view }: { view: AnimeMatchView }): JSX.Element {
           <TamerHp
             label="Tamer inimigo"
             hp={them.hp}
+            soul={them}
             targetable={mode.kind === "attack"}
-            onClick={mode.kind === "attack" ? () => attack(mode.attackerId, { kind: "tamer" }) : undefined}
+            onClick={mode.kind === "attack" ? () => attack({ kind: "tamer" }) : undefined}
           />
           <FieldCounts p={them} />
         </div>
@@ -69,11 +76,13 @@ export function Board({ view }: { view: AnimeMatchView }): JSX.Element {
               key={s.id}
               image={imageOf(s.cards[0]!.cardId)}
               name={nameOf(s.cards[0]!.cardId)}
-              dp={stackDp(s)}
+              dp={stackPower(s)}
+              maxHp={hpOf(s.cards[0]!.cardId)}
+              damage={s.damage}
               depth={s.cards.length}
               suspended={s.tired}
               targetable={mode.kind === "attack"}
-              onClick={mode.kind === "attack" ? () => attack(mode.attackerId, { kind: "digimon", stackId: s.id }) : undefined}
+              onClick={mode.kind === "attack" ? () => attack({ kind: "digimon", stackId: s.id }) : undefined}
             />
           ))}
           {them.field.length === 0 && <span className="empty">— sem Digimon —</span>}
@@ -82,7 +91,21 @@ export function Board({ view }: { view: AnimeMatchView }): JSX.Element {
 
       {/* Centro */}
       <section className="controls">
-        <button disabled={!myTurn} onClick={() => cmd({ type: "endTurn" })}>⟳ Passar turno</button>
+        <button disabled={!myTurn} onClick={() => run({ type: "endTurn" })}>⟳ Passar turno</button>
+        {mode.kind === "attack" && attackerAttacks.length > 1 && (
+          <div className="attack-picker">
+            <span className="muted">Ataque:</span>
+            {attackerAttacks.map((a, i) => (
+              <button
+                key={i}
+                className={mode.attackIndex === i ? "active" : ""}
+                onClick={() => setMode({ ...mode, attackIndex: i })}
+              >
+                {a.name} (⚔{a.power}{a.effect ? ` · ${a.effect}` : ""})
+              </button>
+            ))}
+          </div>
+        )}
         {mode.kind !== "idle" && <button className="cancel" onClick={reset}>✕ Cancelar</button>}
         {view.status === "ended" && (
           <p className="result">{view.winner === me ? "🏆 Você venceu!" : "Derrota."}</p>
@@ -92,54 +115,62 @@ export function Board({ view }: { view: AnimeMatchView }): JSX.Element {
       {/* Meu lado */}
       <section className="player-area mine">
         <Lane title="Seu campo">
-          {mine.field.map((s) => {
-            const targetable = mode.kind === "digivolve" || canAttackWith(s);
-            return (
-              <Card
-                key={s.id}
-                image={imageOf(s.cards[0]!.cardId)}
-                name={nameOf(s.cards[0]!.cardId)}
-                dp={stackDp(s)}
-                depth={s.cards.length}
-                suspended={s.tired || s.playedThisTurn}
-                targetable={targetable}
-                onClick={() => {
-                  if (mode.kind === "digivolve") cmd({ type: "digivolve", sourceId: mode.sourceId, targetId: s.id });
-                  else if (canAttackWith(s)) setMode({ kind: "attack", attackerId: s.id });
-                }}
-              />
-            );
-          })}
+          {mine.field.map((s) => (
+            <Card
+              key={s.id}
+              image={imageOf(s.cards[0]!.cardId)}
+              name={nameOf(s.cards[0]!.cardId)}
+              dp={stackPower(s)}
+              maxHp={hpOf(s.cards[0]!.cardId)}
+              damage={s.damage}
+              depth={s.cards.length}
+              suspended={s.tired || s.playedThisTurn}
+              targetable={mode.kind === "digivolve" || canAttackWith(s)}
+              selected={mode.kind === "attack" && mode.attackerId === s.id}
+              onClick={() => {
+                if (mode.kind === "digivolve") run({ type: "digivolve", sourceId: mode.sourceId, targetId: s.id });
+                else if (canAttackWith(s)) setMode({ kind: "attack", attackerId: s.id, attackIndex: 0 });
+              }}
+            />
+          ))}
           {mine.field.length === 0 && <span className="empty">— jogue um rookie da mão —</span>}
         </Lane>
         <div className="tamer-row">
-          <TamerHp label="Seu Tamer" hp={mine.hp} mine />
+          <TamerHp label="Seu Tamer" hp={mine.hp} soul={mine} mine />
           <FieldCounts p={mine} />
         </div>
 
         <div className="hand-zone">
           <span className="zone-tag">Sua mão ({mine.hand?.length ?? 0})</span>
           <div className="hand">
-            {(mine.hand ?? []).map((c) => (
-              <div key={c.id} className="hand-card">
-                <Card
-                  image={imageOf(c.cardId)}
-                  name={nameOf(c.cardId)}
-                  dp={cards[c.cardId]?.dp}
-                  size="lg"
-                  selected={selectedHand === c.id}
-                  onClick={myTurn ? () => setSelectedHand((cur) => (cur === c.id ? null : c.id)) : undefined}
-                />
-                {selectedHand === c.id && myTurn && (
-                  <div className="hand-actions">
-                    {stageOf(c.cardId) === "rookie" && (
-                      <button onClick={() => cmd({ type: "playDigimon", cardId: c.id })}>Jogar</button>
-                    )}
-                    <button onClick={() => setMode({ kind: "digivolve", sourceId: c.id })}>Evoluir</button>
-                  </div>
-                )}
-              </div>
-            ))}
+            {(mine.hand ?? []).map((c) => {
+              const def = card(c.cardId);
+              const affordable = (def?.cost ?? 0) <= mine.digiSoul;
+              return (
+                <div key={c.id} className="hand-card">
+                  <Card
+                    image={imageOf(c.cardId)}
+                    name={nameOf(c.cardId)}
+                    dp={def?.dp}
+                    cost={def?.cost}
+                    size="lg"
+                    selected={selectedHand === c.id}
+                    onClick={myTurn ? () => setSelectedHand((cur) => (cur === c.id ? null : c.id)) : undefined}
+                  />
+                  {selectedHand === c.id && myTurn && (
+                    <div className="hand-actions">
+                      {def?.stage === "rookie" && (
+                        <button disabled={!affordable} onClick={() => run({ type: "playDigimon", cardId: c.id })}>
+                          Jogar {def?.cost ? `(⚡${def.cost})` : ""}
+                        </button>
+                      )}
+                      <button onClick={() => setMode({ kind: "digivolve", sourceId: c.id })}>Evoluir</button>
+                      {def?.ability && <span className="ability" title={def.ability.text}>✦ {def.ability.text}</span>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -152,19 +183,21 @@ function hintFor(view: AnimeMatchView, mode: Mode, myTurn: boolean): string {
   if (!myTurn) return "Aguardando o oponente jogar…";
   if (mode.kind === "digivolve") return "Clique no SEU Digimon em campo que vai receber a evolução.";
   if (mode.kind === "attack")
-    return "Clique num Digimon inimigo para batalhar, ou no Tamer dele (só dá se não houver Digimon protegendo).";
-  return "Seu turno: jogue um rookie, evolua um Digimon, ataque com um Digimon ativo, ou passe o turno.";
+    return "Escolha o ataque (se houver mais de um) e clique num Digimon inimigo ou no Tamer dele (se não houver Digimon protegendo).";
+  return "Seu turno: jogue um rookie (gasta ⚡), evolua, ataque, ou passe o turno.";
 }
 
 function TamerHp({
   label,
   hp,
+  soul,
   mine,
   targetable,
   onClick,
 }: {
   label: string;
   hp: number;
+  soul: AnimePlayerView;
   mine?: boolean;
   targetable?: boolean;
   onClick?: () => void;
@@ -177,6 +210,7 @@ function TamerHp({
     >
       <span className="tamer-label">{label}</span>
       <span className="tamer-hp">{"❤".repeat(Math.max(0, hp))} <em>{hp} HP</em></span>
+      <span className="tamer-soul">⚡ {soul.digiSoul}/{soul.digiSoulMax}</span>
     </button>
   );
 }

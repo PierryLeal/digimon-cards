@@ -11,6 +11,7 @@ function stackView(s: anime.AnimeStack): AnimeStackView {
     cards: s.cards.map((c) => ({ id: c.id, cardId: c.cardId })),
     tired: s.tired,
     playedThisTurn: s.playedThisTurn,
+    damage: s.damage,
   };
 }
 
@@ -18,6 +19,8 @@ function playerView(p: anime.AnimePlayer, isSelf: boolean): AnimePlayerView {
   return {
     id: p.id,
     hp: p.hp,
+    digiSoul: p.digiSoul,
+    digiSoulMax: p.digiSoulMax,
     hand: isSelf ? p.hand.map((c) => ({ id: c.id, cardId: c.cardId })) : undefined,
     handCount: p.hand.length,
     deckCount: p.deck.length,
